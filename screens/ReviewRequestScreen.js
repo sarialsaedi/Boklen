@@ -13,35 +13,16 @@ const COLORS = {
     red: '#ef4444',
 };
 
-const SELECTED_MACHINERY = [
-    {
-        id: 1,
-        title: 'حفارة - 20 طن',
-        subtitle: 'كاتربيلر 320 أو مماثل',
-        rentalType: 'يومية',
-        driver: 'مع سائق',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4D0aFVagLz3E02lodHN8GPVm8NVelqsDiQmDnpUxx7q57A4pE1XqaartSCizA-yQctWKpMf1_L1HeoNHYXPcTn2SJ7joOMyd4Uc82t1bImv-MTWqqIQPipO6qGVSRRcQ5G3ZMfqe2zja2uaNle_qbVn9vJa8D3lgy7An5RyZiaAjrapeu_rWQNNcCF5Knm_5NCAAextI0Utzz93dDxjl2zMN26A6CiX6Wr1AcLzU7fWvb0voKTXUErGdsCWYkQrz9cjcxx9jpDLg',
-        quantity: 2,
-    },
-    {
-        id: 2,
-        title: 'شاحنة قلابة',
-        subtitle: '18 متر مكعب',
-        rentalType: 'شهرية',
-        driver: 'بدون سائق',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAflER3WWr2o4xrc_214_7VimkbDCf27pDZEOOPnQ2ytEaVeWbfpE4Ir5Qa0kGW0_PAwrca48bBn-dE4rzSdy2kMjVyRgSNHaEbZ2ygz38YZwBwNDW4nZt5LYTkfyHtTZ54T-ZzXFd9ZTEf-zpF9_XXrNez5S5ok7g7B15dS7FzXgE23cP5r1EX1gjvdgRDBzpwI-M13wrEaSt4BHZZ9lJRTgspej7DDt6wmDRSkUzsT2Z2G1D69RlH8dKghwHd8oLSseb8FI2dc28',
-        quantity: 1,
-    },
-];
+import { useCart } from '../context/CartContext';
 
 export default function ReviewRequestScreen({ navigation }) {
-    const [items, setItems] = useState(SELECTED_MACHINERY);
+    const { cartItems, removeFromCart } = useCart();
 
-    const handleDelete = (id) => {
-        setItems(prev => prev.filter(item => item.id !== id));
+    const handleDelete = (cartId) => {
+        removeFromCart(cartId);
     };
 
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
         <View style={styles.container}>
@@ -69,77 +50,94 @@ export default function ReviewRequestScreen({ navigation }) {
                 <Text style={styles.stepText}>الخطوة 2 من 3</Text>
             </View>
 
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                {items.map((item) => (
-                    <View key={item.id} style={styles.card}>
-                        <View style={styles.cardMain}>
-                            <View style={styles.imageContainer}>
-                                <Image source={{ uri: item.image }} style={styles.image} />
-                            </View>
-                            <View style={styles.cardInfo}>
-                                <View style={styles.titleRow}>
-                                    <Text style={styles.cardTitle}>
-                                        <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
-                                        {item.title}
-                                    </Text>
-                                    <TouchableOpacity
-                                        onPress={() => handleDelete(item.id)}
-                                        style={styles.deleteBtn}
-                                    >
-                                        <MaterialIcons name="delete" size={20} color={COLORS.red} />
+            {cartItems.length === 0 ? (
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <MaterialIcons name="shopping-cart" size={64} color={COLORS.textGray} />
+                    <Text style={{ marginTop: 16, fontSize: 18, color: COLORS.textGray }}>سلة الطلبات فارغة</Text>
+                    <TouchableOpacity
+                        style={[styles.findProvidersBtn, { marginTop: 24, width: 200 }]}
+                        onPress={() => navigation.navigate('AddMachinery')}
+                    >
+                        <Text style={styles.findProvidersText}>تصفح المعدات</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : (
+                <>
+                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                        {cartItems.map((item) => (
+                            <View key={item.cartId} style={styles.card}>
+                                <View style={styles.cardMain}>
+                                    <View style={styles.imageContainer}>
+                                        <Image source={{ uri: item.image }} style={styles.image} />
+                                    </View>
+                                    <View style={styles.cardInfo}>
+                                        <View style={styles.titleRow}>
+                                            <Text style={styles.cardTitle}>
+                                                <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
+                                                {item.title}
+                                            </Text>
+                                            <TouchableOpacity
+                                                onPress={() => handleDelete(item.cartId)}
+                                                style={styles.deleteBtn}
+                                            >
+                                                <MaterialIcons name="delete" size={20} color={COLORS.red} />
+                                            </TouchableOpacity>
+                                        </View>
+                                        <Text style={styles.cardDetails}>
+                                            ({item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'})
+                                        </Text>
+                                        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.cardFooter}>
+                                    <TouchableOpacity style={styles.editBtn} onPress={() => navigation.goBack()}>
+                                        <MaterialIcons name="edit" size={16} color={COLORS.primary} />
+                                        <Text style={styles.editBtnText}>تعديل الخيارات والكمية</Text>
                                     </TouchableOpacity>
                                 </View>
-                                <Text style={styles.cardDetails}>
-                                    ({item.driver}، {item.rentalType})
-                                </Text>
-                                <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
                             </View>
+                        ))}
+
+                        <TouchableOpacity
+                            style={styles.addMoreBtn}
+                            onPress={() => navigation.navigate('AddMachinery')}
+                        >
+                            <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
+                            <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+
+                    {/* Bottom Sheet */}
+                    <View style={styles.bottomSheet}>
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>إجمالي المعدات</Text>
+                            <Text style={styles.summaryValue}>{totalItems} معدات</Text>
                         </View>
-                        <View style={styles.cardFooter}>
-                            <TouchableOpacity style={styles.editBtn} onPress={() => navigation.goBack()}>
-                                <MaterialIcons name="edit" size={16} color={COLORS.primary} />
-                                <Text style={styles.editBtnText}>تعديل الخيارات والكمية</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                            style={styles.findProvidersBtn}
+                            onPress={() => navigation.navigate('FindingProviders')}
+                        >
+                            <Text style={styles.findProvidersText}>العثور على مقدمي الخدمة</Text>
+                            <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
+                        </TouchableOpacity>
                     </View>
-                ))}
-
-                <TouchableOpacity
-                    style={styles.addMoreBtn}
-                    onPress={() => navigation.goBack()}
-                >
-                    <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
-                    <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
-                </TouchableOpacity>
-            </ScrollView>
-
-            {/* Bottom Sheet */}
-            <View style={styles.bottomSheet}>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>إجمالي المعدات</Text>
-                    <Text style={styles.summaryValue}>{totalItems} معدات</Text>
-                </View>
-                <TouchableOpacity
-                    style={styles.findProvidersBtn}
-                    onPress={() => navigation.navigate('FindingProviders')}
-                >
-                    <Text style={styles.findProvidersText}>العثور على مقدمي الخدمة</Text>
-                    <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
-                </TouchableOpacity>
-            </View>
+                </>
+            )}
 
             {/* Bottom Nav */}
             <View style={styles.bottomNav}>
-                <View style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('UserHome')}>
                     <MaterialIcons name="home" size={24} color={COLORS.textGray} />
                     <Text style={styles.navLabel}>الرئيسية</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.navItem}>
                     <View style={styles.navIconBadge}>
                         <MaterialIcons name="assignment" size={24} color={COLORS.primary} />
-                        <View style={styles.badge}>
-                            <Text style={styles.badgeText}>2</Text>
-                        </View>
+                        {totalItems > 0 && (
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>{totalItems}</Text>
+                            </View>
+                        )}
                     </View>
                     <Text style={[styles.navLabel, { fontWeight: 'bold', color: COLORS.primary }]}>الطلبات</Text>
                 </View>

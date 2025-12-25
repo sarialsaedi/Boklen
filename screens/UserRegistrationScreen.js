@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -15,9 +15,29 @@ const COLORS = {
 
 export default function UserRegistrationScreen({ navigation }) {
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [otp, setOtp] = useState(['', '', '', '']);
-    const inputRefs = useRef([]);
+    const [otpCode, setOtpCode] = useState('');
+    const otpInputRef = useRef(null);
     const [step, setStep] = useState(1); // 1: Phone, 2: OTP
+    const [timer, setTimer] = useState(59);
+    const [canResend, setCanResend] = useState(false);
+
+    useEffect(() => {
+        let interval;
+        if (step === 2 && timer > 0) {
+            interval = setInterval(() => {
+                setTimer((prevTimer) => prevTimer - 1);
+            }, 1000);
+        } else if (timer === 0) {
+            setCanResend(true);
+        }
+        return () => clearInterval(interval);
+    }, [step, timer]);
+
+    const handleResend = () => {
+        setTimer(59);
+        setCanResend(false);
+        // Add actual resend logic here if available
+    };
 
     const handleSendOtp = () => {
         if (phoneNumber.length >= 9) {
@@ -78,74 +98,43 @@ export default function UserRegistrationScreen({ navigation }) {
                                 <Text style={styles.label}>رمز التحقق</Text>
                                 <Text style={styles.otpCount}>4 خانات</Text>
                             </View>
-                            <View style={styles.otpContainer}>
-                                {otp.map((digit, index) => (
-                                    <TextInput
-                                        key={index}
-                                        ref={(ref) => (inputRefs.current[index] = ref)}
-                                        style={styles.otpInput}
-                                        keyboardType="number-pad"
-                                        textContentType="oneTimeCode"
-                                        autoComplete="sms-otp"
-                                        selectTextOnFocus={true}
-                                        maxLength={4} // Increased to allow pasting/autofill
-                                        value={digit}
-                                        onChangeText={(text) => {
-                                            // Handle paste logic or multi-digit input
-                                            if (text.length > 1) {
-                                                const chars = text.split('');
-                                                const newOtp = [...otp];
-
-                                                chars.forEach((char, i) => {
-                                                    if (index + i < 4) {
-                                                        newOtp[index + i] = char;
-                                                    }
-                                                });
-                                                setOtp(newOtp);
-
-                                                // Focus behavior after paste
-                                                const nextIndex = Math.min(index + chars.length, 3);
-                                                // If we filled the current slot, move to the next logical slot
-                                                if (nextIndex < 4) {
-                                                    inputRefs.current[nextIndex]?.focus();
-                                                }
-                                                // If filled completely, maybe dismiss keyboard or just stay on last?
-                                                // For now keeping focus on last filled or specific index is safer.
-                                                if (index + chars.length >= 4) {
-                                                    inputRefs.current[3]?.focus();
-                                                }
-                                                return;
-                                            }
-
-                                            // Default single character behavior
-                                            const newOtp = [...otp];
-                                            newOtp[index] = text;
-                                            setOtp(newOtp);
-
-                                            // Auto-advance focus
-                                            if (text && index < 3) {
-                                                inputRefs.current[index + 1]?.focus();
-                                            }
-
-                                            // Handle backspace resulting in jump back if needed? 
-                                            // Usually handled by onKeyPress for empty fields.
-                                            // If we turn a field empty, we might want to stay here (standard) or move back?
-                                            // Standard is stay. Backspace on empty moves back.
-                                        }}
-                                        onKeyPress={({ nativeEvent }) => {
-                                            // Handle backspace navigation
-                                            if (nativeEvent.key === 'Backspace' && !digit && index > 0) {
-                                                inputRefs.current[index - 1]?.focus();
-                                            }
-                                        }}
-                                        placeholder="•"
-                                    />
-                                ))}
+                            <View>
+                                <TextInput
+                                    ref={otpInputRef}
+                                    style={styles.hiddenInput}
+                                    keyboardType="number-pad"
+                                    textContentType="oneTimeCode"
+                                    autoComplete="sms-otp"
+                                    maxLength={4}
+                                    value={otpCode}
+                                    onChangeText={setOtpCode}
+                                    autoFocus={true}
+                                />
+                                <Pressable
+                                    style={styles.otpContainer}
+                                    onPress={() => otpInputRef.current?.focus()}
+                                >
+                                    {[0, 1, 2, 3].map((index) => (
+                                        <View
+                                            key={index}
+                                            style={[
+                                                styles.otpInput,
+                                                otpCode.length === index && { borderColor: COLORS.primary, borderWidth: 2 }
+                                            ]}
+                                        >
+                                            <Text style={styles.otpInputText}>
+                                                {otpCode[index] || ''}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </Pressable>
                             </View>
                             <View style={styles.resendContainer}>
                                 <Text style={styles.resendLabel}>لم يصلك الرمز؟</Text>
-                                <TouchableOpacity>
-                                    <Text style={styles.resendButton}>إعادة إرسال (00:59)</Text>
+                                <TouchableOpacity onPress={handleResend} disabled={!canResend}>
+                                    <Text style={[styles.resendButton, !canResend && { color: COLORS.subtext }]}>
+                                        {canResend ? 'إعادة إرسال' : `إعادة إرسال (00:${timer.toString().padStart(2, '0')})`}
+                                    </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -170,12 +159,25 @@ export default function UserRegistrationScreen({ navigation }) {
                     <View style={styles.footer}>
                         <View style={styles.loginRow}>
                             <Text style={styles.footerText}>لديك حساب بالفعل؟</Text>
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                                 <Text style={styles.linkText}>تسجيل الدخول</Text>
                             </TouchableOpacity>
                         </View>
                         <Text style={styles.termsText}>
-                            من خلال التسجيل، أنت توافق على <Text style={styles.underline}>الشروط والأحكام</Text> و <Text style={styles.underline}>سياسة الخصوصية</Text>
+                            من خلال التسجيل، أنت توافق على{' '}
+                            <Text
+                                style={styles.underline}
+                                onPress={() => navigation.navigate('Terms')}
+                            >
+                                الشروط والأحكام
+                            </Text>{' '}
+                            و{' '}
+                            <Text
+                                style={styles.underline}
+                                onPress={() => navigation.navigate('PrivacyPolicy')}
+                            >
+                                سياسة الخصوصية
+                            </Text>
                         </Text>
 
                         {/* Provider Switch */}
@@ -314,6 +316,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: 12,
+        direction: 'ltr',
     },
     otpInput: {
         flex: 1,
@@ -322,10 +325,19 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.border,
         borderRadius: 12,
-        textAlign: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    otpInputText: {
         fontSize: 20,
         fontWeight: 'bold',
         color: COLORS.textDark,
+    },
+    hiddenInput: {
+        position: 'absolute',
+        width: 1,
+        height: 1,
+        opacity: 0,
     },
     resendContainer: {
         flexDirection: 'row',
