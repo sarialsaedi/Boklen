@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform, Alert } from 'react-native';
 import InfoModal from '../components/InfoModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,7 +20,7 @@ export default function RepInfoScreen({ navigation }) {
     const [nationalId, setNationalId] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [showHelpModal, setShowHelpModal] = useState(false);
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(new Date(2000, 0, 1)); // Default to Jan 1, 2000
     const [showDatePicker, setShowDatePicker] = useState(false);
 
     const onChangeDate = (event, selectedDate) => {
@@ -38,6 +38,59 @@ export default function RepInfoScreen({ navigation }) {
                 setShowDatePicker(false);
             }
         }
+    };
+
+    const handleContinue = () => {
+        // 1. Validate Representative Name
+        const trimmedName = repName.trim();
+        const nameParts = trimmedName.split(/\s+/); // Split by whitespace
+        if (!trimmedName || nameParts.length < 2) {
+            Alert.alert(
+                'تنبيه',
+                'يرجى إدخال اسم ممثل الشركة (الاسم الرباعي) كما هو في الهوية.'
+            );
+            return;
+        }
+
+        // 2. Validate National ID
+        // Must be exactly 10 digits and start with '1'
+        const idRegex = /^1\d{9}$/;
+        if (!idRegex.test(nationalId)) {
+            Alert.alert(
+                'تنبيه',
+                'رقم الهوية الوطنية غير صحيح. يجب أن يتكون من 10 أرقام ويبدأ بالرقم 1.'
+            );
+            return;
+        }
+
+        // 3. Validate Date of Birth
+        if (!birthDate) {
+            Alert.alert(
+                'تنبيه',
+                'يرجى اختيار تاريخ الميلاد.'
+            );
+            return;
+        }
+
+        // Calculate age for double validation
+        const today = new Date();
+        const birthDateObj = date; // 'date' state holds the selected Date object
+        let age = today.getFullYear() - birthDateObj.getFullYear();
+        const m = today.getMonth() - birthDateObj.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDateObj.getDate())) {
+            age--;
+        }
+
+        if (age < 18) {
+            Alert.alert(
+                'تنبيه',
+                'عذراً، يجب أن لا يقل عمر الممثل النظامي عن 18 عاماً للمتابعة.'
+            );
+            return;
+        }
+
+        // If all checks pass
+        navigation.navigate('UploadDocs');
     };
 
     return (
@@ -127,7 +180,7 @@ export default function RepInfoScreen({ navigation }) {
                             is24Hour={true}
                             display="default"
                             onChange={onChangeDate}
-                            maximumDate={new Date()} // Can't be born in the future
+                            maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))} // 18 years ago
                         />
                     )}
                 </View>
@@ -137,7 +190,7 @@ export default function RepInfoScreen({ navigation }) {
             <View style={styles.bottomContainer}>
                 <TouchableOpacity
                     style={styles.primaryButton}
-                    onPress={() => navigation.navigate('UploadDocs')}
+                    onPress={handleContinue}
                 >
                     <Text style={styles.primaryButtonText}>متابعة</Text>
                     <MaterialIcons name="arrow-back" size={24} color={COLORS.primaryContent} />

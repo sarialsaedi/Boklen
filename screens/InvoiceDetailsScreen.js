@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Platform, Alert } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -21,8 +21,19 @@ const COLORS = {
 
 const InvoiceDetailsScreen = ({ route }) => {
     const navigation = useNavigation();
-    const { invoice, mode, onPaymentSuccess } = route.params || {};
+    const { invoice, mode, onPaymentSuccess, status: paramStatus } = route.params || {};
 
+    useEffect(() => {
+        if (route.params?.autoDownload) {
+            // Simulate a short delay for "processing"
+            setTimeout(() => {
+                Alert.alert("نجاح", "تم تحميل الصورة الى ألبوم الصور");
+            }, 800);
+        }
+    }, [route.params]);
+
+    const status = paramStatus || invoice?.status;
+    const isCanceled = status === 'Canceled' || status === 'ملغاة';
     const isPaymentMode = mode === 'payment';
 
     // Data - Merging props with fallbacks
@@ -79,6 +90,20 @@ const InvoiceDetailsScreen = ({ route }) => {
         );
     };
 
+    const handleDownloadPDF = () => {
+        // 4. Constraint: Ignore if canceled
+        if (invoice?.status === 'canceled' || invoice?.status === 'Canceled') {
+            return;
+        }
+
+        // 2. Implement Logic (Simulation)
+        Alert.alert(
+            "تم التحميل",
+            "تم حفظ نسخة من الفاتورة بنجاح في ملفاتك (PDF).",
+            [{ text: "حسنًا" }]
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
@@ -94,22 +119,36 @@ const InvoiceDetailsScreen = ({ route }) => {
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
+                {isCanceled && (
+                    <View style={{ backgroundColor: '#FFEBEE', padding: 12, borderRadius: 8, marginBottom: 16, borderLeftWidth: 4, borderLeftColor: '#D32F2F' }}>
+                        <Text style={{ color: '#D32F2F', fontWeight: 'bold', textAlign: 'left' }}>
+                            تم إلغاء هذا الطلب ولا توجد مبالغ مستحقة
+                        </Text>
+                    </View>
+                )}
+
                 {/* --- CARD 1: HEADER & TOTAL --- */}
                 <View style={styles.card}>
                     {/* Top Row: User/Status Badge for context (Optional) or just Status */}
                     <View style={styles.cardHeaderRow}>
-                        <View style={styles.statusBadge}>
-                            {invoice?.status === 'paid' ?
-                                <Text style={styles.statusText}>مدفوعة</Text> :
-                                <Text style={[styles.statusText, { color: COLORS.warning }]}>بانتظار الدفع</Text>
-                            }
-                        </View>
+                        {isCanceled ? (
+                            <View style={[styles.statusBadge, { backgroundColor: '#FFEBEE' }]}>
+                                <Text style={[styles.statusText, { color: '#D32F2F' }]}>ملغاة</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.statusBadge}>
+                                {invoice?.status === 'paid' ?
+                                    <Text style={styles.statusText}>مدفوعة</Text> :
+                                    <Text style={[styles.statusText, { color: COLORS.warning }]}>بانتظار الدفع</Text>
+                                }
+                            </View>
+                        )}
                     </View>
 
                     {/* Main Amount */}
                     <View style={styles.amountContainer}>
                         <Text style={styles.totalLabelSmall}>المبلغ الكلي</Text>
-                        <Text style={styles.totalAmountLarge}>{invoiceData.totalAmount}</Text>
+                        <Text style={[styles.totalAmountLarge, isCanceled && { color: '#808080' }]}>{invoiceData.totalAmount}</Text>
                     </View>
 
                     {/* Divider */}
@@ -205,15 +244,29 @@ const InvoiceDetailsScreen = ({ route }) => {
                 {/* --- CARD 5: DOWNLOAD BUTTON --- */}
                 <View style={styles.bottomCard}>
                     {/* Action Button: Payment OR Download */}
-                    {isPaymentMode ? (
+                    {isCanceled ? (
+                        <View style={[styles.primaryButton, { backgroundColor: '#E0E0E0' }]}>
+                            <Text style={[styles.primaryButtonText, { color: '#757575' }]}>الفاتورة ملغاة</Text>
+                        </View>
+                    ) : isPaymentMode ? (
                         <TouchableOpacity style={styles.primaryButton} onPress={handlePayment}>
                             <Text style={styles.primaryButtonText}>موافق والإكمال للدفع</Text>
                             <MaterialIcons name="arrow-back" size={20} color="#000" style={{ transform: [{ rotate: '180deg' }] }} />
                         </TouchableOpacity>
                     ) : (
-                        <TouchableOpacity style={styles.primaryButton}>
-                            <Text style={styles.primaryButtonText}>تحميل الفاتورة PDF</Text>
-                            <MaterialIcons name="download" size={20} color="#000" />
+                        <TouchableOpacity
+                            style={[
+                                styles.primaryButton,
+                                (invoice?.status === 'canceled' || invoice?.status === 'Canceled') && { backgroundColor: COLORS.border, opacity: 0.6 }
+                            ]}
+                            onPress={handleDownloadPDF}
+                            disabled={invoice?.status === 'canceled' || invoice?.status === 'Canceled'}
+                        >
+                            <Text style={[
+                                styles.primaryButtonText,
+                                (invoice?.status === 'canceled' || invoice?.status === 'Canceled') && { color: COLORS.textGray }
+                            ]}>تحميل الفاتورة PDF</Text>
+                            <MaterialIcons name="download" size={20} color={(invoice?.status === 'canceled' || invoice?.status === 'Canceled') ? COLORS.textGray : "#000"} />
                         </TouchableOpacity>
                     )}
                 </View>

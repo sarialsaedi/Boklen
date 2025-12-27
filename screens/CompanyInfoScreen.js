@@ -44,6 +44,39 @@ export default function CompanyInfoScreen({ navigation }) {
         setHelpModalVisible(true);
     };
 
+    const validateForm = () => {
+        // 1. Company Name Validation
+        if (!companyName.trim()) {
+            Alert.alert('خطأ', 'يرجى إدخال اسم المنشأة.');
+            return false;
+        }
+
+        // 2. Entity Type Validation
+        if (!companyType) {
+            Alert.alert('خطأ', 'يرجى اختيار نوع الكيان.');
+            return false;
+        }
+
+        // 3. Commercial Registration No (CR) Validation
+        // Must be exactly 10 digits, numeric, and start with 10, 40, or 70
+        const crRegex = /^(10|40|70)\d{8}$/;
+        if (!crRegex.test(crNumber)) {
+            Alert.alert(
+                'خطأ',
+                'رقم السجل التجاري غير صحيح. يجب أن يتكون من 10 أرقام ويبدأ بـ 10 أو 40 أو 70.'
+            );
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleContinue = () => {
+        if (validateForm()) {
+            navigation.navigate('RepInfo');
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -120,7 +153,7 @@ export default function CompanyInfoScreen({ navigation }) {
             <View style={styles.bottomContainer}>
                 <TouchableOpacity
                     style={styles.primaryButton}
-                    onPress={() => navigation.navigate('RepInfo')}
+                    onPress={handleContinue}
                 >
                     <Text style={styles.primaryButtonText}>متابعة</Text>
                     <MaterialIcons name="arrow-back" size={24} color={COLORS.primaryContent} />

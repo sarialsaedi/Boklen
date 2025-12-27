@@ -66,9 +66,17 @@ const INITIAL_INVOICES = [
     }
 ];
 
-export default function UserInvoicesScreen({ navigation }) {
+export default function UserInvoicesScreen({ navigation, route }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [invoices, setInvoices] = useState(INITIAL_INVOICES);
+
+    // Effect to handle linking from Orders
+    React.useEffect(() => {
+        if (route.params?.highlightOrderId) {
+            // Set search query to the Order ID to filter immediately
+            setSearchQuery(route.params.highlightOrderId);
+        }
+    }, [route.params]);
 
     const handlePaymentSuccess = (invoiceId) => {
         setInvoices(currentInvoices =>
@@ -204,7 +212,10 @@ export default function UserInvoicesScreen({ navigation }) {
                                             </TouchableOpacity>
                                         )}
 
-                                        <TouchableOpacity style={[styles.actionButton, { flex: 0, width: 40, borderLeftWidth: 1, borderColor: '#f1f5f9' }]}>
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, { flex: 0, width: 40, borderLeftWidth: 1, borderColor: '#f1f5f9' }]}
+                                            onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, autoDownload: true })}
+                                        >
                                             <MaterialIcons name="download" size={18} color={COLORS.primary} />
                                         </TouchableOpacity>
                                     </View>

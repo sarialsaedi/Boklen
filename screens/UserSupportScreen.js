@@ -353,4 +353,21 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: COLORS.textGray,
     },
+    customHeader: {
+        backgroundColor: COLORS.surfaceLight,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.border,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+    },
+    customBackButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    customBackText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+    },
 });

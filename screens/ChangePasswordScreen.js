@@ -27,13 +27,31 @@ export default function ChangePasswordScreen({ navigation }) {
             return;
         }
 
+        // Check A (Matching)
         if (newPassword !== confirmPassword) {
-            Alert.alert('خطأ', 'كلمة المرور الجديدة غير متطابقة');
+            Alert.alert("خطأ", "كلمة المرور الجديدة غير متطابقة");
             return;
         }
 
-        if (newPassword.length < 6) {
-            Alert.alert('خطأ', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        // Check B (Difference)
+        if (newPassword === oldPassword) {
+            Alert.alert("تنبيه", "كلمة المرور الجديدة يجب أن تختلف عن القديمة");
+            return;
+        }
+
+        // Check C (Complexity)
+        // At least 1 Uppercase, 1 Lowercase, 1 Number, 1 Special Character
+        const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+        // Note: The user prompt asked for specific loose regex or checks. 
+        // "At least 1 Uppercase & 1 Lowercase letter. At least 1 Number & 1 Special Character."
+        // A simple regex approach:
+        const hasUpperCase = /[A-Z]/.test(newPassword);
+        const hasLowerCase = /[a-z]/.test(newPassword);
+        const hasNumber = /\d/.test(newPassword);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+
+        if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+            Alert.alert("كلمة المرور ضعيفة", "يرجى اتباع شروط كلمة المرور الموضحة");
             return;
         }
 
@@ -106,6 +124,23 @@ export default function ChangePasswordScreen({ navigation }) {
                             secureTextEntry
                             textAlign="right"
                         />
+                    </View>
+                </View>
+
+                {/* Password Requirements UI */}
+                <View style={styles.requirementsContainer}>
+                    <Text style={styles.requirementsHeader}>شروط كلمة المرور:</Text>
+                    <View style={styles.bulletPoint}>
+                        <Text style={styles.bulletText}>• يجب أن تحتوي على أحرف كبيرة (A) وصغيرة (a).</Text>
+                    </View>
+                    <View style={styles.bulletPoint}>
+                        <Text style={styles.bulletText}>• يجب أن تحتوي على أرقام (123) ورموز (@#$).</Text>
+                    </View>
+                    <View style={styles.bulletPoint}>
+                        <Text style={styles.bulletText}>• يجب أن تكون مختلفة عن كلمة المرور السابقة.</Text>
+                    </View>
+                    <View style={styles.bulletPoint}>
+                        <Text style={styles.bulletText}>• يجب أن تكون الخانات متطابقة.</Text>
                     </View>
                 </View>
 
@@ -197,5 +232,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: COLORS.textDark,
+    },
+    requirementsContainer: {
+        marginTop: 10,
+        paddingHorizontal: 8,
+    },
+    requirementsHeader: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+        marginBottom: 8,
+        textAlign: 'right',
+    },
+    bulletPoint: {
+        flexDirection: 'row-reverse',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    bulletText: {
+        fontSize: 12,
+        color: COLORS.textGray,
+        textAlign: 'right',
     },
 });

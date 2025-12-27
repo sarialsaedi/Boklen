@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -27,6 +27,7 @@ const MOCK_FLEET_DATA = [
         nameAr: 'حفارة كاتربيلر 320',
         price: 1500,
         status: 'available',
+        image: 'https://images.unsplash.com/photo-1547900662-79339aab6250?auto=format&fit=crop&q=80&w=500', // Yellow Excavator
     },
     {
         id: '2',
@@ -36,6 +37,7 @@ const MOCK_FLEET_DATA = [
         renterName: 'شركة البنيان',
         startDate: '2024-01-01',
         endDate: '2024-02-01',
+        image: 'https://images.unsplash.com/photo-1588365261313-17b5398d7f26?auto=format&fit=crop&q=80&w=500', // Crane
     },
     {
         id: '3',
@@ -45,12 +47,14 @@ const MOCK_FLEET_DATA = [
         renterName: 'محمد سعود',
         startDate: '2024-01-15',
         endDate: '2024-01-25',
+        image: 'https://images.unsplash.com/photo-1520111166344-77ae340e42d7?auto=format&fit=crop&q=80&w=500', // Bulldozer/Construction
     },
     {
         id: '4',
         nameAr: 'بوبكات S550',
         price: 600,
         status: 'available',
+        image: 'https://images.unsplash.com/photo-1517424647313-05b18aa72c53?auto=format&fit=crop&q=80&w=500', // Bobcat/Loader
     },
     {
         id: '5',
@@ -60,14 +64,63 @@ const MOCK_FLEET_DATA = [
         renterName: 'مؤسسة الإعمار',
         startDate: '2023-12-20',
         endDate: '2024-03-20',
+        image: 'https://images.unsplash.com/photo-1626847037657-fd3622613ce3?auto=format&fit=crop&q=80&w=500', // Truck
     },
     {
         id: '6',
         nameAr: 'شاحنة فولفو FH16',
         price: 1400,
         status: 'available',
+        image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=500', // Heavy Truck
     }
 ];
+
+// Separated Component for handling Image logic cleanly
+const FleetItemCard = ({ item }) => {
+    const [imageError, setImageError] = useState(false);
+    const isRented = item.status === 'rented';
+
+    return (
+        <View style={styles.machineCard}>
+            {item.image && !imageError ? (
+                <Image
+                    source={{ uri: item.image }}
+                    style={styles.machineImage}
+                    resizeMode="cover"
+                    onError={() => setImageError(true)}
+                />
+            ) : (
+                <View style={[styles.machineImage, styles.imagePlaceholder]}>
+                    <MaterialIcons name="construction" size={40} color={COLORS.subtextLight} />
+                </View>
+            )}
+
+            <View style={styles.machineInfo}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.machineName}>{item.nameAr}</Text>
+                    <Text style={styles.priceValue}>{item.price} <Text style={styles.priceCurrency}>ر.س</Text></Text>
+                </View>
+
+                {isRented ? (
+                    <View style={styles.rentalDetailsContainer}>
+                        <View style={styles.detailRow}>
+                            <MaterialIcons name="person" size={16} color={COLORS.subtextLight} />
+                            <Text style={styles.detailText}>{item.renterName}</Text>
+                        </View>
+                        <View style={styles.detailRow}>
+                            <MaterialIcons name="date-range" size={16} color={COLORS.subtextLight} />
+                            <Text style={styles.detailText}>من: {item.startDate} إلى: {item.endDate}</Text>
+                        </View>
+                    </View>
+                ) : (
+                    <View style={styles.availableBadge}>
+                        <Text style={styles.availableText}>متاح للإيجار</Text>
+                    </View>
+                )}
+            </View>
+        </View>
+    );
+};
 
 export default function FleetManagementScreen({ navigation }) {
     const [selectedTab, setSelectedTab] = useState('all'); // 'all', 'rented', 'available'
@@ -83,39 +136,6 @@ export default function FleetManagementScreen({ navigation }) {
         all: MOCK_FLEET_DATA.length,
         rented: MOCK_FLEET_DATA.filter(i => i.status === 'rented').length,
         available: MOCK_FLEET_DATA.filter(i => i.status === 'available').length,
-    };
-
-    const renderCard = ({ item }) => {
-        const isRented = item.status === 'rented';
-
-        return (
-            <View style={styles.machineCard}>
-                <View style={styles.machineImage} />
-                <View style={styles.machineInfo}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.machineName}>{item.nameAr}</Text>
-                        <Text style={styles.priceValue}>{item.price} <Text style={styles.priceCurrency}>ر.س</Text></Text>
-                    </View>
-
-                    {isRented ? (
-                        <View style={styles.rentalDetailsContainer}>
-                            <View style={styles.detailRow}>
-                                <MaterialIcons name="person" size={16} color={COLORS.subtextLight} />
-                                <Text style={styles.detailText}>{item.renterName}</Text>
-                            </View>
-                            <View style={styles.detailRow}>
-                                <MaterialIcons name="date-range" size={16} color={COLORS.subtextLight} />
-                                <Text style={styles.detailText}>من: {item.startDate} إلى: {item.endDate}</Text>
-                            </View>
-                        </View>
-                    ) : (
-                        <View style={styles.availableBadge}>
-                            <Text style={styles.availableText}>متاح للإيجار</Text>
-                        </View>
-                    )}
-                </View>
-            </View>
-        );
     };
 
     return (
@@ -176,11 +196,11 @@ export default function FleetManagementScreen({ navigation }) {
                 >
                     <Text style={[
                         styles.statLabel,
-                        selectedTab === 'all' ? styles.textPrimary : styles.textGray
+                        selectedTab === 'all' ? styles.textBlack : styles.textGray
                     ]}>الكل</Text>
                     <Text style={[
                         styles.statValue,
-                        selectedTab === 'all' ? styles.textPrimary : styles.textGray
+                        selectedTab === 'all' ? styles.textBlack : styles.textGray
                     ]}>{counts.all}</Text>
                 </TouchableOpacity>
             </View>
@@ -188,7 +208,7 @@ export default function FleetManagementScreen({ navigation }) {
             {/* Content List */}
             <FlatList
                 data={filteredData}
-                renderItem={renderCard}
+                renderItem={({ item }) => <FleetItemCard item={item} />}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
@@ -237,9 +257,9 @@ const styles = StyleSheet.create({
         borderColor: COLORS.borderLight,
     },
     statCardAllActive: {
-        backgroundColor: COLORS.surfaceLight, // Keep white but highlight border/text
-        borderColor: COLORS.primaryContent,
-        borderWidth: 2,
+        backgroundColor: COLORS.primary, // Active Yellow
+        borderColor: COLORS.primary,
+        borderWidth: 1,
     },
     statCardRentedActive: {
         backgroundColor: COLORS.rentedBg,
@@ -255,8 +275,10 @@ const styles = StyleSheet.create({
 
     textGray: { color: COLORS.subtextLight },
     textPrimary: { color: COLORS.textLight },
+    textBlack: { color: '#000000' }, // For Active All Tab
     textAmber: { color: COLORS.rentedText },
     textGreen: { color: COLORS.availableText },
+    textWhite: { color: '#ffffff' },
 
     listContent: { paddingHorizontal: 16, paddingBottom: 100 },
 
@@ -268,7 +290,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.borderLight,
     },
-    machineImage: { width: '100%', height: 150, backgroundColor: '#e5e7eb' },
+    machineImage: { width: '100%', height: 140, backgroundColor: '#e5e7eb' },
+    imagePlaceholder: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     machineInfo: { padding: 12 },
     cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }, // RTL layout mainly
     machineName: { fontSize: 16, fontWeight: 'bold', color: COLORS.textLight, textAlign: 'right' },

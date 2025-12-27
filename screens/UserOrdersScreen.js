@@ -97,13 +97,21 @@ export default function UserOrdersScreen({ navigation }) {
                 </View>
 
                 {/* Info Note - Hide if Approved */}
-                {item.status !== 'Approved' && item.status !== 'تم الموافقة على الطلب' && (
+                {(item.status !== 'Approved' && item.status !== 'تم الموافقة على الطلب') ? (
                     <View style={styles.infoBox}>
                         <MaterialIcons name="info-outline" size={14} color={COLORS.textSub} style={{ marginTop: 2 }} />
                         <Text style={styles.infoBoxText}>
                             يستغرق وقت الموافقة على الطلب من 24 ساعة حتى 72 ساعة
                         </Text>
                     </View>
+                ) : (
+                    <TouchableOpacity
+                        style={styles.paymentButton}
+                        onPress={() => navigation.navigate('UserInvoices', { highlightOrderId: item.id, filterStatus: 'Pending' })}
+                    >
+                        <Text style={styles.paymentButtonText}>الانتقال الى الدفع</Text>
+                        <MaterialIcons name="arrow-back" size={16} color="#000" style={{ transform: [{ rotate: '180deg' }] }} />
+                    </TouchableOpacity>
                 )}
 
                 <View style={styles.divider} />
@@ -345,5 +353,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: COLORS.textSub,
     },
-
+    paymentButton: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        marginBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    paymentButtonText: {
+        color: '#000000',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
 });

@@ -55,7 +55,7 @@ const MACHINERY_DATA = [
         title: 'شيول بوبكات (Bobcat)',
         subtitle: 'متعدد الأغراض - حجم صغير',
         tag: 'سائق مشمول',
-        image: 'https://s7g10.scene7.com/is/image/caterpillar/CM20200806-65814-15967',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bobcat_S175.jpg/1200px-Bobcat_S175.jpg',
         quantity: 0,
         category: 'loaders'
     },
