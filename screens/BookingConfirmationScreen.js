@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#f4d125',
+    primary: '#E6C217',
     backgroundLight: '#fcfbf8',
     surfaceLight: '#ffffff',
     textDark: '#1c190d',
@@ -12,7 +12,8 @@ const COLORS = {
     border: '#e6e4db',
 };
 
-export default function BookingConfirmationScreen({ navigation }) {
+export default function BookingConfirmationScreen({ navigation, route }) {
+    const { orderId } = route.params || {};
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -56,7 +57,7 @@ export default function BookingConfirmationScreen({ navigation }) {
                     <View style={styles.orderHeader}>
                         <Text style={styles.orderLabel}>رقم الطلب</Text>
                         <View style={styles.orderIdRow}>
-                            <Text style={styles.orderId}>ORD-28492</Text>
+                            <Text style={styles.orderId}>{orderId || 'ORD-28492'}</Text>
                             <TouchableOpacity>
                                 <MaterialIcons name="content-copy" size={18} color={COLORS.primary} />
                             </TouchableOpacity>
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: 'rgba(244, 209, 37, 0.2)',
+        backgroundColor: 'rgba(230, 194, 23, 0.2)',
     },
     iconCircle: {
         width: 96,

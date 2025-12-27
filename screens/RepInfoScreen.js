@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform } from 'react-native';
+import InfoModal from '../components/InfoModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     primaryContent: '#181711',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
@@ -17,6 +19,26 @@ export default function RepInfoScreen({ navigation }) {
     const [repName, setRepName] = useState('');
     const [nationalId, setNationalId] = useState('');
     const [birthDate, setBirthDate] = useState('');
+    const [showHelpModal, setShowHelpModal] = useState(false);
+    const [date, setDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
+    const onChangeDate = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShowDatePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            setDate(currentDate);
+            const formatted = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+            setBirthDate(formatted);
+            if (Platform.OS === 'android') {
+                setShowDatePicker(false);
+            }
+        } else {
+            if (Platform.OS === 'android') {
+                setShowDatePicker(false);
+            }
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -25,7 +47,7 @@ export default function RepInfoScreen({ navigation }) {
                     <MaterialIcons name="arrow-forward" size={24} color={COLORS.textLight} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>توثيق الحساب</Text>
-                <TouchableOpacity style={styles.headerButton}>
+                <TouchableOpacity style={styles.headerButton} onPress={() => setShowHelpModal(true)}>
                     <MaterialIcons name="help" size={24} color={COLORS.textLight} />
                 </TouchableOpacity>
             </View>
@@ -91,12 +113,23 @@ export default function RepInfoScreen({ navigation }) {
                 {/* Birth Date Input */}
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>تاريخ الميلاد</Text>
-                    <TouchableOpacity style={styles.inputWrapper}>
+                    <TouchableOpacity style={styles.inputWrapper} onPress={() => setShowDatePicker(true)}>
                         <Text style={[styles.input, !birthDate && styles.placeholder]}>
                             {birthDate || 'DD/MM/YYYY'}
                         </Text>
                         <MaterialIcons name="calendar-today" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </TouchableOpacity>
+                    {showDatePicker && (
+                        <DateTimePicker
+                            testID="dateTimePicker"
+                            value={date}
+                            mode="date"
+                            is24Hour={true}
+                            display="default"
+                            onChange={onChangeDate}
+                            maximumDate={new Date()} // Can't be born in the future
+                        />
+                    )}
                 </View>
             </ScrollView>
 
@@ -114,6 +147,14 @@ export default function RepInfoScreen({ navigation }) {
                     <Text style={styles.securityText}>جميع البيانات مشفرة ومحفوظة بأمان</Text>
                 </View>
             </View>
+
+            {/* Help Modal */}
+            <InfoModal
+                visible={showHelpModal}
+                onClose={() => setShowHelpModal(false)}
+                title="لماذا نحتاج هذه المعلومات؟"
+                message="نحتاج بيانات هويتك للتحقق من هويتك وفق الأنظمة السعودية."
+            />
         </SafeAreaView>
     );
 }
@@ -184,9 +225,9 @@ const styles = StyleSheet.create({
     },
     infoBox: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         borderWidth: 1,
-        borderColor: 'rgba(236, 200, 19, 0.2)',
+        borderColor: 'rgba(230, 194, 23, 0.2)',
         borderRadius: 12,
         padding: 16,
         marginBottom: 24,

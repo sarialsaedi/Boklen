@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813', // Closest match to the yellow in design
+    primary: '#E6C217', // Official Brand Yellow
     backgroundLight: '#f8fafc',
     surfaceLight: '#ffffff',
     textDark: '#0f172a',
@@ -14,7 +14,8 @@ const COLORS = {
     greenWhatsapp: '#25D366',
 };
 
-export default function UserSupportScreen({ navigation }) {
+export default function UserSupportScreen({ navigation, route }) {
+    const returnToCompanyRequest = route?.params?.returnToCompanyRequest;
 
     const FeatureCard = ({ title, subtitle, icon, color, onPress, isWhatsApp }) => (
         <TouchableOpacity
@@ -30,7 +31,7 @@ export default function UserSupportScreen({ navigation }) {
 
             <View style={[
                 styles.iconBox,
-                isWhatsApp ? styles.iconBoxWhatsApp : { backgroundColor: 'rgba(236, 200, 19, 0.1)' } // primary with opacity
+                isWhatsApp ? styles.iconBoxWhatsApp : { backgroundColor: 'rgba(230, 194, 23, 0.1)' } // primary with opacity
             ]}>
                 <MaterialIcons name={icon} size={28} color={isWhatsApp ? '#fff' : COLORS.primary} />
             </View>
@@ -53,15 +54,27 @@ export default function UserSupportScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+            {/* Custom Header for Company Request Return */}
+            {returnToCompanyRequest && (
+                <SafeAreaView edges={['top']} style={styles.customHeader}>
+                    <TouchableOpacity
+                        style={styles.customBackButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
+                        <Text style={styles.customBackText}>العودة الى صفحة الطلب</Text>
+                    </TouchableOpacity>
+                </SafeAreaView>
+            )}
 
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={[styles.scrollContent, returnToCompanyRequest && { paddingTop: 16 }]} showsVerticalScrollIndicator={false}>
 
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <View style={styles.heroGlow} />
                     <View style={styles.heroIconCircle}>
-                        <MaterialIcons name="headset-mic" size={48} color="#ca8a04" />
+                        <MaterialIcons name="headset-mic" size={48} color={COLORS.primary} />
                     </View>
                     <Text style={styles.heroTitle}>كيف يمكننا مساعدتك؟</Text>
                     <Text style={styles.heroSubtitle}>فريق الدعم متواجد لخدمتك على مدار الساعة للإجابة على استفساراتك وحل مشكلاتك</Text>
@@ -80,7 +93,7 @@ export default function UserSupportScreen({ navigation }) {
                         title="المحادثة المباشرة"
                         subtitle="تحدث مع موظف الدعم من خلال التطبيق"
                         icon="forum"
-                        onPress={() => { }}
+                        onPress={() => navigation.navigate('LiveChat')}
                     />
                     <FeatureCard
                         title="اتصال"
@@ -259,7 +272,7 @@ const styles = StyleSheet.create({
     seeAll: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#ca8a04',
+        color: COLORS.primary,
     },
     faqList: {
         gap: 12,

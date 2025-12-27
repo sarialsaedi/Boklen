@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     primaryContent: '#181711',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.textLight, textAlign: 'right', marginBottom: 8 },
     sectionSubtitle: { fontSize: 14, color: COLORS.subtextLight, textAlign: 'right', marginBottom: 16 },
     imageGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-    uploadBox: { flex: 1, aspectRatio: 1, backgroundColor: COLORS.surfaceLight, borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(236, 200, 19, 0.5)', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    uploadBox: { flex: 1, aspectRatio: 1, backgroundColor: COLORS.surfaceLight, borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(230, 194, 23, 0.5)', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
     uploadText: { fontSize: 12, color: COLORS.primary, marginTop: 4 },
     imagePlaceholder: { flex: 1, aspectRatio: 1, backgroundColor: '#e5e7eb', borderRadius: 12 },
     chipsContainer: { marginBottom: 24 },

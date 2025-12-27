@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
@@ -17,12 +17,56 @@ import { useCart } from '../context/CartContext';
 
 export default function ReviewRequestScreen({ navigation }) {
     const { cartItems, removeFromCart } = useCart();
+    const totalItems = (cartItems || []).length;
 
-    const handleDelete = (cartId) => {
-        removeFromCart(cartId);
+    const handleDelete = (id) => {
+        removeFromCart(id);
     };
 
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const renderItem = (item) => (
+        <View key={item.cartId} style={styles.itemContainer}>
+            <View style={styles.card}>
+                <View style={styles.imageContainer}>
+                    <Image source={{ uri: item.image }} style={styles.image} />
+                    {item.tag && (
+                        <View style={styles.statusBadge}>
+                            <View style={styles.statusDot} />
+                            <Text style={styles.statusText}>{item.tag}</Text>
+                        </View>
+                    )}
+                </View>
+                <View style={styles.cardMain}>
+                    <View style={styles.cardInfo}>
+                        <View style={styles.titleRow}>
+                            <Text style={styles.cardTitle}>
+                                <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
+                                {item.title}
+                            </Text>
+                        </View>
+                        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+                        <Text style={styles.cardDetails}>
+                            ({item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'})
+                        </Text>
+                    </View>
+                    <View style={styles.actionsColumn}>
+                        <TouchableOpacity
+                            onPress={() => handleDelete(item.cartId)}
+                            style={styles.deleteBtn}
+                        >
+                            <MaterialIcons name="delete" size={24} color={COLORS.red} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View style={styles.cardFooter}>
+                    <TouchableOpacity style={styles.editBtn} onPress={() => navigation.goBack()}>
+                        <MaterialIcons name="edit" size={16} color={COLORS.primary} />
+                        <Text style={styles.editBtnText}>تعديل الخيارات والكمية</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    );
 
     return (
         <View style={styles.container}>
@@ -50,7 +94,7 @@ export default function ReviewRequestScreen({ navigation }) {
                 <Text style={styles.stepText}>الخطوة 2 من 3</Text>
             </View>
 
-            {cartItems.length === 0 ? (
+            {(cartItems || []).length === 0 ? (
                 <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                     <MaterialIcons name="shopping-cart" size={64} color={COLORS.textGray} />
                     <Text style={{ marginTop: 16, fontSize: 18, color: COLORS.textGray }}>سلة الطلبات فارغة</Text>
@@ -64,39 +108,9 @@ export default function ReviewRequestScreen({ navigation }) {
             ) : (
                 <>
                     <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                        {cartItems.map((item) => (
-                            <View key={item.cartId} style={styles.card}>
-                                <View style={styles.cardMain}>
-                                    <View style={styles.imageContainer}>
-                                        <Image source={{ uri: item.image }} style={styles.image} />
-                                    </View>
-                                    <View style={styles.cardInfo}>
-                                        <View style={styles.titleRow}>
-                                            <Text style={styles.cardTitle}>
-                                                <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
-                                                {item.title}
-                                            </Text>
-                                            <TouchableOpacity
-                                                onPress={() => handleDelete(item.cartId)}
-                                                style={styles.deleteBtn}
-                                            >
-                                                <MaterialIcons name="delete" size={20} color={COLORS.red} />
-                                            </TouchableOpacity>
-                                        </View>
-                                        <Text style={styles.cardDetails}>
-                                            ({item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'})
-                                        </Text>
-                                        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.cardFooter}>
-                                    <TouchableOpacity style={styles.editBtn} onPress={() => navigation.goBack()}>
-                                        <MaterialIcons name="edit" size={16} color={COLORS.primary} />
-                                        <Text style={styles.editBtnText}>تعديل الخيارات والكمية</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        ))}
+                        <View style={styles.listContainer}>
+                            {cartItems.map(item => renderItem(item))}
+                        </View>
 
                         <TouchableOpacity
                             style={styles.addMoreBtn}
@@ -125,27 +139,38 @@ export default function ReviewRequestScreen({ navigation }) {
             )}
 
             {/* Bottom Nav */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('UserHome')}>
-                    <MaterialIcons name="home" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navLabel}>الرئيسية</Text>
-                </TouchableOpacity>
-                <View style={styles.navItem}>
-                    <View style={styles.navIconBadge}>
-                        <MaterialIcons name="assignment" size={24} color={COLORS.primary} />
-                        {totalItems > 0 && (
-                            <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{totalItems}</Text>
-                            </View>
-                        )}
-                    </View>
-                    <Text style={[styles.navLabel, { fontWeight: 'bold', color: COLORS.primary }]}>الطلبات</Text>
+            <SafeAreaView edges={['bottom']} style={styles.bottomNav}>
+                <View style={styles.bottomNavContent}>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserHome')}
+                    >
+                        <MaterialIcons name="home" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الرئيسية</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserOrders')}
+                    >
+                        <MaterialIcons name="receipt-long" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>طلباتي</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserSupport')}
+                    >
+                        <MaterialIcons name="support-agent" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الدعم</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserAccount')}
+                    >
+                        <MaterialIcons name="person" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>حسابي</Text>
+                    </TouchableOpacity>
                 </View>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="person" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navLabel}>حسابي</Text>
-                </View>
-            </View>
+            </SafeAreaView>
         </View>
     );
 }
@@ -193,7 +218,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: 'rgba(236, 200, 19, 0.3)',
+        backgroundColor: 'rgba(230, 194, 23, 0.3)',
     },
     stepDotActive: {
         width: 32,
@@ -219,75 +244,103 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.05)',
-        padding: 12,
+        padding: 0, // Removed padding to let image flush
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
         elevation: 1,
+        overflow: 'hidden', // Clip image corners
     },
     cardMain: {
         flexDirection: 'row',
-        gap: 16,
-        marginBottom: 8,
+        padding: 12,
+        alignItems: 'flex-start',
     },
     imageContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 8,
+        width: '100%',
+        height: 180, // Larger height
         backgroundColor: '#f1f5f9',
-        overflow: 'hidden',
+        position: 'relative',
     },
     image: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
     },
+    statusBadge: {
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#10b981', // Green dot
+    },
+    statusText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#065f46',
+    },
     cardInfo: {
         flex: 1,
+        paddingRight: 8,
     },
     titleRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
+        marginBottom: 4,
     },
     cardTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
         color: COLORS.textDark,
-        flex: 1,
+        textAlign: 'right',
+    },
+    actionsColumn: {
+        justifyContent: 'flex-start',
     },
     deleteBtn: {
         padding: 4,
-        marginTop: -4,
-        marginRight: -4,
     },
     cardDetails: {
         fontSize: 14,
         fontWeight: '500',
-        color: COLORS.textDark,
+        color: COLORS.primary,
         marginTop: 4,
+        textAlign: 'right',
     },
     cardSubtitle: {
-        fontSize: 12,
+        fontSize: 14,
         color: COLORS.textGray,
         marginTop: 2,
+        textAlign: 'right',
     },
     cardFooter: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-end', // Align Edit button to left (RTL end)
         borderTopWidth: 1,
         borderTopColor: 'rgba(0,0,0,0.05)',
-        paddingTop: 8,
-        marginTop: 4,
+        padding: 12,
+        backgroundColor: '#fafaf9',
     },
     editBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         paddingHorizontal: 12,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 8,
     },
     editBtnText: {
@@ -367,42 +420,28 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: 64, // Reduced slightly
         backgroundColor: COLORS.surfaceLight,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
         borderTopWidth: 1,
         borderTopColor: COLORS.border,
-        paddingBottom: 4,
+    },
+    bottomNavContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        height: 64,
+        alignItems: 'center',
     },
     navItem: {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 4,
+        minWidth: 64,
     },
     navLabel: {
         fontSize: 10,
         color: COLORS.textGray,
         fontWeight: '500',
     },
-    navIconBadge: {
-        position: 'relative',
-    },
-    badge: {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: COLORS.red,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    badgeText: {
-        color: 'white',
-        fontSize: 10,
-        fontWeight: 'bold',
+    itemContainer: {
+        marginBottom: 16,
     },
 });

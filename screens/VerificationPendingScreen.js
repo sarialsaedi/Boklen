@@ -1,19 +1,37 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     primaryContent: '#181711',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textLight: '#181711',
     subtextLight: '#5f5e55',
     borderLight: '#e6e4db',
+    green: '#10b981',
 };
 
 export default function VerificationPendingScreen({ navigation }) {
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+    const handleRequestPermissions = async () => {
+        try {
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status === 'granted') {
+                setNotificationsEnabled(true);
+            } else {
+                Alert.alert('تنبيه', 'يجب تفعيل التنبيهات لتلقي الإشعارات.');
+            }
+        } catch (error) {
+            console.error('Error requesting permissions:', error);
+            Alert.alert('خطأ', 'حدث خطأ أثناء طلب الصلاحيات.');
+        }
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>
@@ -29,6 +47,9 @@ export default function VerificationPendingScreen({ navigation }) {
                     شكرًا لرفع السجل التجاري. يقوم فريقنا حاليًا بمراجعة مستنداتك لضمان جودة الخدمة. سنقوم بتفعيل حسابك وإشعارك فور الانتهاء.
                 </Text>
 
+                {/* Request ID */}
+                <Text style={styles.requestId}>رقم الطلب: <Text style={styles.requestIdBold}>CO-33629</Text></Text>
+
                 {/* Refresh Button */}
                 <TouchableOpacity
                     style={styles.primaryButton}
@@ -39,19 +60,34 @@ export default function VerificationPendingScreen({ navigation }) {
                 </TouchableOpacity>
 
                 {/* Support Button */}
-                <TouchableOpacity style={styles.secondaryButton}>
+                <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() => navigation.navigate('UserSupport', { returnToCompanyRequest: true })}
+                >
                     <Text style={styles.secondaryButtonText}>تواصل مع الدعم</Text>
                     <MaterialIcons name="chat" size={20} color={COLORS.textLight} />
                 </TouchableOpacity>
 
                 {/* Notification Prompt */}
-                <View style={styles.notificationBox}>
-                    <MaterialIcons name="notifications-active" size={24} color={COLORS.primary} />
+                <TouchableOpacity
+                    style={[styles.notificationBox, notificationsEnabled && styles.notificationBoxActive]}
+                    onPress={handleRequestPermissions}
+                    disabled={notificationsEnabled}
+                >
+                    {notificationsEnabled ? (
+                        <MaterialIcons name="check-circle" size={24} color={COLORS.green} />
+                    ) : (
+                        <MaterialIcons name="notifications-active" size={24} color={COLORS.primary} />
+                    )}
                     <View style={styles.notificationContent}>
-                        <Text style={styles.notificationTitle}>تفعيل التنبيهات</Text>
-                        <Text style={styles.notificationText}>سنقوم بإشعارك فور اكتمال عملية التحقق.</Text>
+                        <Text style={styles.notificationTitle}>
+                            {notificationsEnabled ? 'تم تفعيل التنبيهات' : 'تفعيل التنبيهات'}
+                        </Text>
+                        <Text style={styles.notificationText}>
+                            {notificationsEnabled ? 'سنقوم بإشعارك عند اكتمال الطلب.' : 'سنقوم بإشعارك فور اكتمال عملية التحقق.'}
+                        </Text>
                     </View>
-                </View>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
@@ -75,7 +111,7 @@ const styles = StyleSheet.create({
         width: 160,
         height: 160,
         borderRadius: 80,
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -90,9 +126,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: COLORS.subtextLight,
         textAlign: 'center',
+        textAlign: 'center',
         lineHeight: 24,
-        marginBottom: 32,
+        marginBottom: 16,
         maxWidth: 320,
+    },
+    requestId: {
+        fontSize: 14,
+        color: COLORS.subtextLight,
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    requestIdBold: {
+        fontWeight: 'bold',
+        color: COLORS.textLight,
     },
     primaryButton: {
         flexDirection: 'row',
@@ -136,11 +183,16 @@ const styles = StyleSheet.create({
     },
     notificationBox: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         borderRadius: 12,
         padding: 16,
         width: '100%',
         alignItems: 'flex-start',
+    },
+    notificationBoxActive: {
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        borderWidth: 1,
+        borderColor: COLORS.green,
     },
     notificationContent: {
         flex: 1,

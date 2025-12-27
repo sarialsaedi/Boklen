@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ca8a04',
+    primary: '#E6C217',
     backgroundLight: '#f6f7f8',
     surfaceLight: '#ffffff',
     textLight: '#1e293b',
@@ -20,6 +20,9 @@ export default function UserRegistrationScreen({ navigation }) {
     const [step, setStep] = useState(1); // 1: Phone, 2: OTP
     const [timer, setTimer] = useState(59);
     const [canResend, setCanResend] = useState(false);
+    const [isPhoneTouched, setIsPhoneTouched] = useState(false);
+
+    const isPhoneValid = phoneNumber.startsWith('5') && phoneNumber.length === 9;
 
     useEffect(() => {
         let interval;
@@ -33,6 +36,13 @@ export default function UserRegistrationScreen({ navigation }) {
         return () => clearInterval(interval);
     }, [step, timer]);
 
+    // Auto-submit OTP when length reaches 4
+    useEffect(() => {
+        if (step === 2 && otpCode.length === 4) {
+            handleVerify();
+        }
+    }, [otpCode, step]);
+
     const handleResend = () => {
         setTimer(59);
         setCanResend(false);
@@ -40,7 +50,7 @@ export default function UserRegistrationScreen({ navigation }) {
     };
 
     const handleSendOtp = () => {
-        if (phoneNumber.length >= 9) {
+        if (isPhoneValid) {
             setStep(2);
         }
     };
@@ -87,10 +97,16 @@ export default function UserRegistrationScreen({ navigation }) {
                                     keyboardType="phone-pad"
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
+                                    onBlur={() => setIsPhoneTouched(true)}
                                     maxLength={9}
                                 />
                                 <MaterialIcons name="smartphone" size={24} color={COLORS.subtext} style={styles.inputIcon} />
                             </View>
+                            {isPhoneTouched && !isPhoneValid && (
+                                <Text style={styles.errorText}>
+                                    الرجاء إدخال رقم جوال صحيح (يبدأ بـ 5 ومكون من 9 أرقام)
+                                </Text>
+                            )}
                         </View>
                     ) : (
                         <View style={styles.formSection}>
@@ -147,8 +163,12 @@ export default function UserRegistrationScreen({ navigation }) {
                     </View>
 
                     <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[
+                            styles.primaryButton,
+                            step === 1 && !isPhoneValid && styles.disabledButton
+                        ]}
                         onPress={step === 1 ? handleSendOtp : handleVerify}
+                        disabled={step === 1 && !isPhoneValid}
                     >
                         <Text style={styles.primaryButtonText}>
                             {step === 1 ? 'تسجيل ومتابعة' : 'تحقق ودخول'}
@@ -231,7 +251,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 16,
-        backgroundColor: 'rgba(202, 138, 4, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
@@ -432,5 +452,16 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.subtext,
         fontWeight: '500',
+    },
+    errorText: {
+        color: '#ef4444',
+        fontSize: 14,
+        marginTop: 8,
+        textAlign: 'right',
+    },
+    disabledButton: {
+        backgroundColor: COLORS.subtext,
+        shadowOpacity: 0,
+        elevation: 0,
     },
 });

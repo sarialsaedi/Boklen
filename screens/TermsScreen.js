@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ca8a04',
+    primary: '#E6C217',
     backgroundLight: '#f6f7f8',
     surfaceLight: '#ffffff',
     textLight: '#1e293b',

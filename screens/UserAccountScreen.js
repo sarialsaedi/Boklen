@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // For some specific icons if needed
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useUser } from '../context/UserContext';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#181711',
@@ -13,105 +13,95 @@ const COLORS = {
     border: '#e2e8f0',
     success: '#22c55e',
     successBg: '#dcfce7',
+    danger: '#ef4444',
 };
 
 export default function UserAccountScreen({ navigation }) {
 
-    const UserProfileSection = () => (
-        <View style={styles.profileSection}>
-            <Text style={styles.userName}>محمد آل سعود</Text>
-            <Text style={styles.userPhone}>+966 54 123 4567</Text>
+    const { userData } = useUser();
+
+    const renderHeader = () => (
+        <View style={styles.headerContainer}>
+            <View style={styles.avatarContainer}>
+                <Image
+                    source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || 'Mohammed Al Saud')}&background=E6C217&color=fff&size=200` }}
+                    style={styles.avatarImage}
+                />
+            </View>
+            <Text style={styles.userName}>{userData?.name || 'محمد آل سعود'}</Text>
+            <Text style={styles.userPhone}>{userData?.phone || '+966 54 123 4567'}</Text>
             <View style={styles.verifiedBadge}>
-                <MaterialIcons name="verified" size={16} color={COLORS.success} />
+                {/* Assuming isVerified is logic we might add later or just static for now as 'true' based on context default or mock */}
+                <MaterialIcons name="check-circle" size={16} color={COLORS.success} />
                 <Text style={styles.verifiedText}>مستخدم موثق</Text>
             </View>
         </View>
     );
 
-    const MenuSection = ({ title, items }) => (
-        <View style={styles.menuSection}>
+    const renderMenuItem = (item, isLast) => (
+        <TouchableOpacity
+            key={item.title}
+            style={[styles.menuItem, isLast && styles.lastMenuItem]}
+            onPress={item.onPress}
+        >
+            <View style={styles.menuItemLeft}>
+                <View style={[styles.iconContainer, { backgroundColor: item.iconBg || 'rgba(230, 194, 23, 0.1)' }]}>
+                    <MaterialIcons name={item.icon} size={22} color={item.iconColor || COLORS.primary} />
+                </View>
+                <Text style={styles.menuItemTitle}>{item.title}</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={COLORS.textGray} />
+        </TouchableOpacity>
+    );
+
+    const renderSection = (title, items) => (
+        <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>{title}</Text>
-            <View style={styles.menuCard}>
-                {items.map((item, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        style={[
-                            styles.menuItem,
-                            index === items.length - 1 && { borderBottomWidth: 0 }
-                        ]}
-                        onPress={item.onPress}
-                    >
-                        <View style={styles.menuItemLeft}>
-                            <View style={styles.iconContainer}>
-                                <MaterialIcons name={item.icon} size={24} color={COLORS.primary} />
-                            </View>
-                            <View>
-                                <Text style={styles.menuItemTitle}>{item.title}</Text>
-                                {item.subtitle && <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>}
-                            </View>
-                        </View>
-                        {item.value ? (
-                            <View style={styles.valueContainer}>
-                                <Text style={styles.valueText}>{item.value}</Text>
-                                <MaterialIcons name="chevron-left" size={24} color="#94a3b8" />
-                            </View>
-                        ) : (
-                            <MaterialIcons name="chevron-left" size={24} color="#94a3b8" />
-                        )}
-                    </TouchableOpacity>
-                ))}
+            <View style={styles.sectionContent}>
+                {items.map((item, index) => renderMenuItem(item, index === items.length - 1))}
             </View>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-            </View>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header Section */}
+                {renderHeader()}
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <UserProfileSection />
+                {/* Section 1: General (عام) */}
+                {renderSection('عام', [
+                    { title: 'البيانات الشخصية', icon: 'person', onPress: () => navigation.navigate('PersonalData') },
+                    { title: 'العناوين المحفوظة', icon: 'location-on', onPress: () => navigation.navigate('SavedAddresses') },
+                    { title: 'الفواتير', icon: 'receipt', onPress: () => navigation.navigate('UserInvoices') },
+                ])}
 
-                {/* Account Info */}
-                <MenuSection
-                    title="معلومات الحساب"
-                    items={[
-                        { title: 'البيانات الشخصية', icon: 'person', onPress: () => { } },
-                        { title: 'العناوين المحفوظة', icon: 'location-on', onPress: () => { } },
-                    ]}
-                />
+                {/* Section 2: Settings (الإعدادات) */}
+                {renderSection('الإعدادات', [
+                    { title: 'اللغة', icon: 'language', onPress: () => navigation.navigate('LanguageSettings') },
+                    { title: 'الإشعارات', icon: 'notifications', onPress: () => navigation.navigate('Notifications') },
+                ])}
 
-                {/* Invoices & Docs */}
-                <MenuSection
-                    title="الفواتير والمستندات"
-                    items={[
-                        { title: 'الفواتير', icon: 'receipt', onPress: () => navigation.navigate('UserInvoices') },
-                        { title: 'سياسة الخصوصية', icon: 'policy', onPress: () => { } },
-                    ]}
-                />
+                {/* Section 3: About App (عن التطبيق) */}
+                {renderSection('عن التطبيق', [
+                    { title: 'سياسة الخصوصية', icon: 'security', onPress: () => navigation.navigate('PrivacyPolicy') },
+                    { title: 'الشروط والأحكام', icon: 'description', onPress: () => navigation.navigate('Terms') },
+                ])}
 
-                {/* Settings */}
-                <MenuSection
-                    title="الإعدادات"
-                    items={[
-                        { title: 'اللغة', icon: 'language', value: 'العربية', onPress: () => { } },
-                        { title: 'الإشعارات', icon: 'notifications', onPress: () => { } },
-                    ]}
-                />
-
-                {/* Logout Actions */}
-                <View style={styles.logoutSection}>
-                    <TouchableOpacity style={styles.logoutButton}>
-                        <MaterialIcons name="logout" size={20} color={COLORS.textGray} />
+                {/* Footer: Log Out */}
+                <View style={styles.footerContainer}>
+                    <TouchableOpacity
+                        style={styles.logoutButton}
+                        onPress={() => navigation.navigate('Login')}
+                    >
+                        <MaterialIcons name="logout" size={20} color={COLORS.danger} />
                         <Text style={styles.logoutText}>تسجيل الخروج</Text>
                     </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.deleteButton}>
-                        <MaterialIcons name="delete-forever" size={20} color="#ef4444" />
-                        <Text style={styles.deleteText}>حذف الحساب</Text>
-                    </TouchableOpacity>
                 </View>
+
             </ScrollView>
 
             {/* Bottom Nav */}
@@ -158,34 +148,46 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.backgroundLight,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingTop: 60, // approximate status bar + safety
-        paddingBottom: 16,
-        backgroundColor: 'rgba(248, 248, 246, 0.95)',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.textDark,
-    },
-    settingsButton: {
-        width: 40,
-        alignItems: 'flex-end',
-    },
     scrollContent: {
         paddingBottom: 100, // Space for bottom nav
     },
-    profileSection: {
+    // Header Styles
+    headerContainer: {
         alignItems: 'center',
-        paddingVertical: 24,
-        paddingHorizontal: 16,
+        paddingTop: 60,
+        paddingBottom: 32,
+        backgroundColor: COLORS.surfaceLight,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 5,
+        marginBottom: 24,
+    },
+    avatarContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#f1f5f9',
+        borderWidth: 4,
+        borderColor: COLORS.surfaceLight,
+        shadowColor: 'rgba(0,0,0,0.1)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+        elevation: 4,
+        marginBottom: 16,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
     },
     userName: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         color: COLORS.textDark,
         marginBottom: 4,
@@ -194,8 +196,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.textGray,
         marginBottom: 12,
-        // layout direction handled by React Native automatically if I don't force it.
-        // For numbers, sometimes explicit LTR is needed.
     },
     verifiedBadge: {
         flexDirection: 'row',
@@ -208,38 +208,46 @@ const styles = StyleSheet.create({
     },
     verifiedText: {
         fontSize: 12,
-        fontWeight: '500',
+        fontWeight: '600',
         color: COLORS.success,
     },
-    menuSection: {
+    // Menu Styles
+    sectionContainer: {
         marginBottom: 24,
-        paddingHorizontal: 16,
+        paddingHorizontal: 20,
     },
     sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.textGray,
-        marginBottom: 8,
-        paddingHorizontal: 8,
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+        marginBottom: 12,
         textAlign: 'right',
+        marginRight: 4,
     },
-    menuCard: {
+    sectionContent: {
         backgroundColor: COLORS.surfaceLight,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        overflow: 'hidden',
+        borderRadius: 20,
+        paddingVertical: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 8,
+        elevation: 2,
     },
     menuItem: {
-        flexDirection: 'row',
+        flexDirection: 'row-reverse', // RTL Support for content within item
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#f1f5f9',
     },
+    lastMenuItem: {
+        borderBottomWidth: 0,
+    },
     menuItemLeft: {
-        flexDirection: 'row',
+        flexDirection: 'row-reverse', // RTL icon and text
         alignItems: 'center',
         gap: 16,
     },
@@ -247,33 +255,18 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: 'rgba(236, 200, 19, 0.1)', // primary with opacity
         alignItems: 'center',
         justifyContent: 'center',
     },
     menuItemTitle: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '500',
         color: COLORS.textDark,
-        marginBottom: 2,
     },
-    menuItemSubtitle: {
-        fontSize: 12,
-        color: COLORS.textGray,
-    },
-    valueContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    valueText: {
-        fontSize: 14,
-        color: COLORS.textGray,
-    },
-    logoutSection: {
-        paddingHorizontal: 16,
-        gap: 12,
-        marginBottom: 24,
+    // Footer Styles
+    footerContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 40,
     },
     logoutButton: {
         flexDirection: 'row',
@@ -281,32 +274,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 8,
         padding: 16,
-        backgroundColor: COLORS.surfaceLight,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    logoutText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: COLORS.textGray,
-    },
-    deleteButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        padding: 16,
         backgroundColor: '#fee2e2',
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1,
         borderColor: '#fecaca',
     },
-    deleteText: {
+    logoutText: {
         fontSize: 16,
-        fontWeight: '500',
-        color: '#ef4444',
+        fontWeight: '600',
+        color: COLORS.danger,
     },
+    // Bottom Nav
     bottomNav: {
         position: 'absolute',
         bottom: 0,
@@ -345,7 +323,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#ef4444', // Red dot as per design
+        backgroundColor: '#ef4444',
         borderWidth: 1.5,
         borderColor: COLORS.surfaceLight,
     },

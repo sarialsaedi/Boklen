@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, I18nManager, Modal, FlatList, TouchableWithoutFeedback, Alert } from 'react-native';
+import InfoModal from '../components/InfoModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -8,7 +9,7 @@ I18nManager.allowRTL(true);
 I18nManager.forceRTL(true);
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     primaryContent: '#181711',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
@@ -17,19 +18,40 @@ const COLORS = {
     borderLight: '#e6e4db',
 };
 
+const ENTITY_TYPES = [
+    { id: '1', label: 'مؤسسة فردية' },
+    { id: '2', label: 'شركة ذات مسؤولية محدودة' },
+    { id: '3', label: 'شركة مساهمة مبسطة' },
+    { id: '4', label: 'شركة مساهمة عامة' },
+    { id: '5', label: 'شركة تضامن' },
+    { id: '6', label: 'شركة مهنية' },
+    { id: '7', label: 'فرع شركة أجنبية' },
+];
+
 export default function CompanyInfoScreen({ navigation }) {
     const [companyName, setCompanyName] = useState('');
     const [companyType, setCompanyType] = useState('');
     const [crNumber, setCrNumber] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [helpModalVisible, setHelpModalVisible] = useState(false);
+
+    const handleSelectType = (type) => {
+        setCompanyType(type);
+        setModalVisible(false);
+    };
+
+    const handleHelpPress = () => {
+        setHelpModalVisible(true);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity style={styles.headerButton} onPress={() => console.log('back')}>
+                <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
                     <MaterialIcons name="arrow-forward" size={24} color={COLORS.textLight} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>معلومات المنشأة</Text>
-                <TouchableOpacity style={styles.headerButton}>
+                <TouchableOpacity style={styles.headerButton} onPress={handleHelpPress}>
                     <MaterialIcons name="help" size={24} color={COLORS.textLight} />
                 </TouchableOpacity>
             </View>
@@ -67,7 +89,7 @@ export default function CompanyInfoScreen({ navigation }) {
                 {/* Company Type Input */}
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>نوع الكيان <Text style={styles.required}>*</Text></Text>
-                    <TouchableOpacity style={styles.inputWrapper}>
+                    <TouchableOpacity style={styles.inputWrapper} onPress={() => setModalVisible(true)}>
                         <Text style={[styles.input, !companyType && styles.placeholder]}>
                             {companyType || 'اختر نوع الشركة'}
                         </Text>
@@ -108,6 +130,55 @@ export default function CompanyInfoScreen({ navigation }) {
                     <Text style={styles.securityText}>جميع البيانات المدخلة مشفرة وآمنة</Text>
                 </View>
             </View>
+
+            {/* Entity Type Dropdown Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>اختر نوع الكيان</Text>
+                                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                    <MaterialIcons name="close" size={24} color={COLORS.textLight} />
+                                </TouchableOpacity>
+                            </View>
+                            <FlatList
+                                data={ENTITY_TYPES}
+                                keyExtractor={(item) => item.id}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={styles.modalItem}
+                                        onPress={() => handleSelectType(item.label)}
+                                    >
+                                        <Text style={[
+                                            styles.modalItemText,
+                                            companyType === item.label && styles.selectedItemText
+                                        ]}>
+                                            {item.label}
+                                        </Text>
+                                        {companyType === item.label && (
+                                            <MaterialIcons name="check" size={20} color={COLORS.primary} />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+
+            {/* Help Modal */}
+            <InfoModal
+                visible={helpModalVisible}
+                onClose={() => setHelpModalVisible(false)}
+                title="لماذا نحتاج هذه المعلومات؟"
+                message="يرجى إدخال بيانات المنشأة بدقة كما هي مسجلة في وزارة التجارة لضمان سرعة توثيق الحساب."
+            />
         </SafeAreaView>
     );
 }
@@ -253,5 +324,46 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.textLight,
         marginLeft: 6,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: COLORS.surfaceLight,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '70%',
+        paddingBottom: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.borderLight,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+    },
+    modalItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.borderLight,
+    },
+    modalItemText: {
+        fontSize: 16,
+        color: COLORS.textLight,
+    },
+    selectedItemText: {
+        color: COLORS.primary,
+        fontWeight: 'bold',
     },
 });

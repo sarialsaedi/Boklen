@@ -6,7 +6,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
@@ -59,7 +59,7 @@ export default function MachineConfigScreen({ navigation, route }) {
                     start.setDate(start.getDate() + 1);
                     const dateStr = start.toISOString().split('T')[0];
                     if (dateStr === endDate) break;
-                    marked[dateStr] = { color: 'rgba(236, 200, 19, 0.4)', textColor: 'black' };
+                    marked[dateStr] = { color: 'rgba(230, 194, 23, 0.4)', textColor: 'black' };
                 }
                 marked[endDate] = { endingDay: true, color: COLORS.primary, textColor: 'white' };
             }
@@ -90,7 +90,9 @@ export default function MachineConfigScreen({ navigation, route }) {
             price: rentalType === 'trip' ? total : 0, // Simplified price logic for example
             startDate,
             endDate,
-            notes
+            endDate,
+            notes,
+            tag: machine.tag // Pass the tag (e.g., "سائق مشمول")
         };
 
         addToCart(newItem);
@@ -139,7 +141,7 @@ export default function MachineConfigScreen({ navigation, route }) {
                                     <Text style={styles.machineTitle}>{machine.title}</Text>
                                     <Text style={styles.machineSubtitle}>{machine.subtitle}</Text>
                                     <View style={styles.verifiedTag}>
-                                        <MaterialIcons name="verified" size={14} color="#a16207" />
+                                        <MaterialIcons name="verified" size={14} color={COLORS.primary} />
                                         <Text style={styles.verifiedText}>معدات مضمونة</Text>
                                     </View>
                                 </View>
@@ -433,7 +435,7 @@ const styles = StyleSheet.create({
     },
     machineSubtitle: {
         fontSize: 14,
-        color: '#a16207', // Gold-ish color from reference
+        color: COLORS.primary, // Gold-ish color from reference
         marginBottom: 12,
         fontWeight: '500',
     },
@@ -452,7 +454,7 @@ const styles = StyleSheet.create({
     verifiedText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#a16207',
+        color: COLORS.primary,
     },
     section: {
         marginBottom: 8,
@@ -486,7 +488,7 @@ const styles = StyleSheet.create({
     },
     rentalTypeActive: {
         borderColor: COLORS.primary,
-        backgroundColor: 'rgba(236, 200, 19, 0.05)',
+        backgroundColor: 'rgba(230, 194, 23, 0.05)',
     },
     rentalTypeName: {
         marginTop: 8,

@@ -5,11 +5,13 @@ module.exports = {
     extend: {
       colors: {
         "primary": "#ecc813",
+        "primary-light": "rgba(230, 194, 23, 0.2)",
+        "primary-dark": "rgb(180, 150, 10)",
+        "background-light": "#F9FAFB",
+        "background-dark": "#111827",
+        "surface-light": "#FFFFFF",
+        "surface-dark": "#1F2937",
         "primary-content": "#181711",
-        "background-light": "#f8f8f6",
-        "background-dark": "#221f10",
-        "surface-light": "#ffffff",
-        "surface-dark": "#2c2a1c",
         "text-light": "#181711",
         "text-dark": "#e6e4db",
         "subtext-light": "#5f5e55",
@@ -19,7 +21,9 @@ module.exports = {
       },
       fontFamily: {
         "display": ["Noto Sans Arabic", "Inter", "sans-serif"],
-        "body": ["Noto Sans Arabic", "Inter", "sans-serif"]
+        "body": ["Noto Sans Arabic", "Inter", "sans-serif"],
+        "arabic": ["Noto Sans Arabic", "sans-serif"],
+        "sans": ["Inter", "Noto Sans Arabic", "sans-serif"],
       },
       borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
     },

@@ -13,35 +13,34 @@ const COLORS = {
     border: '#e2e8f0',
 };
 
-export default function LoginScreen({ navigation }) {
+export default function ForgotPasswordScreen({ navigation }) {
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
     const isValidPhone = (number) => {
         return /^5\d{8}$/.test(number);
     };
 
-    const isFormValid = isValidPhone(phoneNumber) && password.length > 0;
-
-    const handleLogin = () => {
-        if (!isFormValid) {
-            if (!isValidPhone(phoneNumber)) {
-                setError('الرجاء إدخال رقم جوال صحيح (يبدأ بـ 5 ويتكون من 9 أرقام)');
-            } else if (password.length === 0) {
-                setError('الرجاء إدخال كلمة المرور');
-            }
+    const handleSendCode = () => {
+        if (!isValidPhone(phoneNumber)) {
+            setError('الرجاء إدخال رقم جوال صحيح (يبدأ بـ 5 ويتكون من 9 أرقام)');
             return;
         }
 
-        // Clear error and proceed
         setError('');
         Keyboard.dismiss();
-        navigation.navigate('UserHome');
+        // Here you would typically trigger the API to send the code
+        // For now, we'll navigate to a verification screen or just show an alert/log
+        // Assuming we might want to go to verification logic, but since that wasn't explicitly detailed 
+        // beyond "Send Verification Code" button, I'll just mock it or stay here.
+        // The request says: "Button: 'Send Verification Code' (إرسال رمز التحقق)".
+        // I will just add a dummy alert or log for now as the next screen isn't defined.
+        // Actually, re-using NafathVerificationScreen might be weird.
+        // I'll just leave it as a mock action.
+        alert('Code sent to ' + phoneNumber);
     };
 
     const handlePhoneChange = (text) => {
-        // Sanitize: allow only numbers
         const cleaned = text.replace(/[^0-9]/g, '');
         setPhoneNumber(cleaned);
         if (error) setError('');
@@ -57,18 +56,18 @@ export default function LoginScreen({ navigation }) {
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                         <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>تسجيل الدخول</Text>
+                    <Text style={styles.headerTitle}>إعادة تعيين كلمة المرور</Text>
                     <View style={{ width: 40 }} />
                 </View>
 
                 <View style={styles.content}>
                     <View style={styles.iconContainer}>
-                        <MaterialIcons name="login" size={32} color={COLORS.primary} />
+                        <MaterialIcons name="lock-reset" size={32} color={COLORS.primary} />
                     </View>
 
-                    <Text style={styles.title}>أهلاً بك مجدداً</Text>
+                    <Text style={styles.title}>نسيت كلمة المرور؟</Text>
                     <Text style={styles.subtitle}>
-                        الرجاء إدخال بيانات الدخول للمتابعة
+                        أدخل رقم الجوال المسجل لاستعادة كلمة المرور
                     </Text>
 
                     <View style={styles.formSection}>
@@ -86,50 +85,20 @@ export default function LoginScreen({ navigation }) {
                                 maxLength={9}
                             />
                         </View>
-                        {error && !isValidPhone(phoneNumber) ? (
-                            <Text style={styles.errorText}>{error}</Text>
-                        ) : null}
-                    </View>
-
-                    <View style={styles.formSection}>
-                        <Text style={styles.label}>كلمة المرور</Text>
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="******"
-                                secureTextEntry
-                                value={password}
-                                onChangeText={(text) => {
-                                    setPassword(text);
-                                    if (error) setError('');
-                                }}
-                            />
-                        </View>
-                        <TouchableOpacity
-                            style={styles.forgotPasswordContainer}
-                            onPress={() => navigation.navigate('ForgotPassword')}
-                        >
-                            <Text style={styles.forgotPasswordText}>نسيت كلمة المرور؟</Text>
-                        </TouchableOpacity>
+                        {error ? <Text style={styles.errorText}>{error}</Text> : null}
                     </View>
 
                     <TouchableOpacity
-                        style={[styles.primaryButton, !isFormValid && styles.disabledButton]}
-                        onPress={handleLogin}
+                        style={[styles.primaryButton, !isValidPhone(phoneNumber) && styles.disabledButton]}
+                        onPress={handleSendCode}
                         activeOpacity={0.7}
                     >
-                        <Text style={[styles.primaryButtonText, !isFormValid && styles.disabledButtonText]}>تسجيل الدخول</Text>
-                        <MaterialIcons name="arrow-back" size={20} color={!isFormValid ? COLORS.subtext : "white"} />
+                        <Text style={[styles.primaryButtonText, !isValidPhone(phoneNumber) && styles.disabledButtonText]}>
+                            إرسال رمز التحقق
+                        </Text>
+                        <MaterialIcons name="arrow-back" size={20} color={!isValidPhone(phoneNumber) ? COLORS.subtext : "white"} />
                     </TouchableOpacity>
 
-                    <View style={styles.footer}>
-                        <View style={styles.loginRow}>
-                            <Text style={styles.footerText}>ليس لديك حساب؟</Text>
-                            <TouchableOpacity onPress={() => navigation.navigate('UserRegistration')}>
-                                <Text style={styles.linkText}>تسجيل جديد</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
                 </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -241,23 +210,6 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         color: COLORS.textDark,
     },
-    input: {
-        flex: 1,
-        height: '100%',
-        fontSize: 16,
-        textAlign: 'right',
-        color: COLORS.textDark,
-    },
-    forgotPasswordContainer: {
-        alignItems: 'flex-start',
-        marginTop: 8,
-        paddingVertical: 4,
-    },
-    forgotPasswordText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: COLORS.primary, // Or use a dark grey if preferred, but primary matches request "dark grey or primary yellow"
-    },
     errorText: {
         color: '#ef4444',
         fontSize: 12,
@@ -281,7 +233,7 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     disabledButton: {
-        backgroundColor: '#e2e8f0', // Gray out
+        backgroundColor: '#e2e8f0',
         shadowOpacity: 0,
         elevation: 0,
     },
@@ -293,23 +245,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 8,
-    },
-    footer: {
-        alignItems: 'center',
-        gap: 16,
-    },
-    loginRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    footerText: {
-        fontSize: 14,
-        color: COLORS.subtext,
-    },
-    linkText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: COLORS.primary,
     },
 });
