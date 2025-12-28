@@ -52,7 +52,7 @@ export default function FindingProvidersScreen({ navigation }) {
         return () => clearTimeout(timer);
     }, []);
 
-    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
     return (
         <View style={styles.container}>
@@ -114,7 +114,7 @@ export default function FindingProvidersScreen({ navigation }) {
                                     </View>
                                     <View style={styles.itemInfo}>
                                         <Text style={styles.itemTitle} numberOfLines={1}>
-                                            <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
+                                            <Text style={{ color: COLORS.primary }}>{item.quantity || 1} x </Text>
                                             {item.title}
                                         </Text>
                                         <Text style={styles.itemSub} numberOfLines={1}>

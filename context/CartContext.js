@@ -132,12 +132,29 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (item) => {
         setCartItems((prevItems) => {
-            // Generate a unique ID for the new item if it doesn't have one
-            const newItem = {
-                ...item,
-                cartId: Date.now().toString() + Math.random().toString(36).substr(2, 9)
-            };
-            return [...prevItems, newItem];
+            // Check if item already exists with matching id, driver, and rentalType
+            const existingItemIndex = prevItems.findIndex(
+                (i) => i.id === item.id && i.driver === item.driver && i.rentalType === item.rentalType
+            );
+
+            if (existingItemIndex >= 0) {
+                // Item exists, increment quantity
+                const updatedItems = [...prevItems];
+                const existingItem = updatedItems[existingItemIndex];
+                updatedItems[existingItemIndex] = {
+                    ...existingItem,
+                    quantity: (existingItem.quantity || 1) + (item.quantity || 1)
+                };
+                return updatedItems;
+            } else {
+                // Item is new, add it
+                const newItem = {
+                    ...item,
+                    quantity: item.quantity || 1,
+                    cartId: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+                };
+                return [...prevItems, newItem];
+            }
         });
     };
 
@@ -164,7 +181,7 @@ export const CartProvider = ({ children }) => {
             status: 'Under Processing',
             items: cartItems,
             totalPrice: orderData.totalPrice,
-            machineryCount: cartItems.length,
+            machineryCount: cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
             ...orderData
         };
 

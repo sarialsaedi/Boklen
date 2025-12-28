@@ -19,6 +19,12 @@ export default function RepInfoScreen({ navigation }) {
     const [repName, setRepName] = useState('');
     const [nationalId, setNationalId] = useState('');
     const [birthDate, setBirthDate] = useState('');
+
+    // Validation Error States
+    const [nameError, setNameError] = useState('');
+    const [idError, setIdError] = useState('');
+    const [dateError, setDateError] = useState('');
+
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1)); // Default to Jan 1, 2000
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -30,6 +36,8 @@ export default function RepInfoScreen({ navigation }) {
             setDate(currentDate);
             const formatted = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
             setBirthDate(formatted);
+            // Clear error when user selects a date
+            setDateError('');
             if (Platform.OS === 'android') {
                 setShowDatePicker(false);
             }
@@ -41,56 +49,54 @@ export default function RepInfoScreen({ navigation }) {
     };
 
     const handleContinue = () => {
+        let isValid = true;
+
         // 1. Validate Representative Name
         const trimmedName = repName.trim();
         const nameParts = trimmedName.split(/\s+/); // Split by whitespace
         if (!trimmedName || nameParts.length < 2) {
-            Alert.alert(
-                'تنبيه',
-                'يرجى إدخال اسم ممثل الشركة (الاسم الرباعي) كما هو في الهوية.'
-            );
-            return;
+            setNameError('يرجى إدخال الاسم الرباعي كما هو في الهوية.');
+            isValid = false;
+        } else {
+            setNameError('');
         }
 
         // 2. Validate National ID
         // Must be exactly 10 digits and start with '1'
         const idRegex = /^1\d{9}$/;
         if (!idRegex.test(nationalId)) {
-            Alert.alert(
-                'تنبيه',
-                'رقم الهوية الوطنية غير صحيح. يجب أن يتكون من 10 أرقام ويبدأ بالرقم 1.'
-            );
-            return;
+            setIdError('رقم الهوية غير صحيح (يجب أن يتكون من 10 أرقام ويبدأ بـ 1).');
+            isValid = false;
+        } else {
+            setIdError('');
         }
 
         // 3. Validate Date of Birth
         if (!birthDate) {
-            Alert.alert(
-                'تنبيه',
-                'يرجى اختيار تاريخ الميلاد.'
-            );
-            return;
-        }
+            setDateError('يرجى اختيار تاريخ الميلاد.');
+            isValid = false;
+        } else {
+            // Calculate age for double validation
+            const today = new Date();
+            const birthDateObj = date; // 'date' state holds the selected Date object
+            let age = today.getFullYear() - birthDateObj.getFullYear();
+            const m = today.getMonth() - birthDateObj.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDateObj.getDate())) {
+                age--;
+            }
 
-        // Calculate age for double validation
-        const today = new Date();
-        const birthDateObj = date; // 'date' state holds the selected Date object
-        let age = today.getFullYear() - birthDateObj.getFullYear();
-        const m = today.getMonth() - birthDateObj.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDateObj.getDate())) {
-            age--;
-        }
-
-        if (age < 18) {
-            Alert.alert(
-                'تنبيه',
-                'عذراً، يجب أن لا يقل عمر الممثل النظامي عن 18 عاماً للمتابعة.'
-            );
-            return;
+            if (age < 18) {
+                setDateError('عذراً، يجب أن لا يقل عمر الممثل النظامي عن 18 عاماً للمتابعة.');
+                isValid = false;
+            } else {
+                setDateError('');
+            }
         }
 
         // If all checks pass
-        navigation.navigate('UploadDocs');
+        if (isValid) {
+            navigation.navigate('UploadDocs');
+        }
     };
 
     return (
@@ -131,47 +137,72 @@ export default function RepInfoScreen({ navigation }) {
                 {/* Rep Name Input */}
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>اسم ممثل الشركة</Text>
-                    <View style={styles.inputWrapper}>
+                    <View style={[styles.inputWrapper, nameError ? { borderColor: '#D32F2F' } : null]}>
                         <TextInput
                             style={styles.input}
                             placeholder="الاسم الرباعي كما في الهوية"
                             placeholderTextColor={COLORS.subtextLight}
                             value={repName}
-                            onChangeText={setRepName}
+                            onChangeText={(text) => {
+                                setRepName(text);
+                                if (nameError) setNameError('');
+                            }}
                             textAlign="right"
                         />
                         <MaterialIcons name="person" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </View>
+                    {nameError ? (
+                        <Text style={{ color: '#D32F2F', fontSize: 12, marginTop: 5, textAlign: 'right' }}>
+                            {nameError}
+                        </Text>
+                    ) : null}
                 </View>
 
                 {/* National ID Input */}
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>رقم الهوية الوطنية</Text>
-                    <View style={styles.inputWrapper}>
+                    <View style={[styles.inputWrapper, idError ? { borderColor: '#D32F2F' } : null]}>
                         <TextInput
                             style={styles.input}
                             placeholder="1xxxxxxxxx"
                             placeholderTextColor={COLORS.subtextLight}
                             value={nationalId}
-                            onChangeText={setNationalId}
+                            onChangeText={(text) => {
+                                setNationalId(text);
+                                if (idError) setIdError('');
+                            }}
                             keyboardType="numeric"
                             maxLength={10}
                             textAlign="right"
                         />
                         <MaterialIcons name="badge" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </View>
-                    <Text style={styles.hint}>يجب أن يتكون الرقم من 10 خانات ويبدأ بـ 1</Text>
+                    {idError ? (
+                        <Text style={{ color: '#D32F2F', fontSize: 12, marginTop: 5, textAlign: 'right' }}>
+                            {idError}
+                        </Text>
+                    ) : (
+                        <Text style={styles.hint}>يجب أن يتكون الرقم من 10 خانات ويبدأ بـ 1</Text>
+                    )}
                 </View>
 
                 {/* Birth Date Input */}
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>تاريخ الميلاد</Text>
-                    <TouchableOpacity style={styles.inputWrapper} onPress={() => setShowDatePicker(true)}>
+                    <TouchableOpacity
+                        style={[styles.inputWrapper, dateError ? { borderColor: '#D32F2F' } : null]}
+                        onPress={() => setShowDatePicker(true)}
+                    >
                         <Text style={[styles.input, !birthDate && styles.placeholder]}>
                             {birthDate || 'DD/MM/YYYY'}
                         </Text>
                         <MaterialIcons name="calendar-today" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </TouchableOpacity>
+                    {dateError ? (
+                        <Text style={{ color: '#D32F2F', fontSize: 12, marginTop: 5, textAlign: 'right' }}>
+                            {dateError}
+                        </Text>
+                    ) : null}
                     {showDatePicker && (
                         <DateTimePicker
                             testID="dateTimePicker"

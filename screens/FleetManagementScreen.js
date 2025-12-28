@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,8 +16,13 @@ const COLORS = {
     red: '#ef4444',
     rentedBg: '#fef3c7', // amber-100
     rentedText: '#92400e', // amber-800
+    rentedActiveBg: '#FFEBEE', // Very Light Pale Pink
+    rentedActiveText: '#C62828', // Dark Red
     availableBg: '#dcfce7', // green-100
     availableText: '#166534', // green-800
+    allActiveBg: '#FFF8E1', // Very Light Pale Yellow
+    allActiveBorder: '#FBC02D', // Dark Golden-Yellow
+    allActiveText: '#FBC02D', // Dark Golden-Yellow
 };
 
 // Mock Data with extended fields
@@ -37,7 +42,7 @@ const MOCK_FLEET_DATA = [
         renterName: 'شركة البنيان',
         startDate: '2024-01-01',
         endDate: '2024-02-01',
-        image: 'https://images.unsplash.com/photo-1588365261313-17b5398d7f26?auto=format&fit=crop&q=80&w=500', // Crane
+        image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=500', // Crane
     },
     {
         id: '3',
@@ -47,7 +52,7 @@ const MOCK_FLEET_DATA = [
         renterName: 'محمد سعود',
         startDate: '2024-01-15',
         endDate: '2024-01-25',
-        image: 'https://images.unsplash.com/photo-1520111166344-77ae340e42d7?auto=format&fit=crop&q=80&w=500', // Bulldozer/Construction
+        image: 'https://images.unsplash.com/photo-1590216706705-4c6e6b0f4d38?q=80&w=500', // Bulldozer
     },
     {
         id: '4',
@@ -122,20 +127,39 @@ const FleetItemCard = ({ item }) => {
     );
 };
 
-export default function FleetManagementScreen({ navigation }) {
+export default function FleetManagementScreen({ navigation, route }) {
     const [selectedTab, setSelectedTab] = useState('all'); // 'all', 'rented', 'available'
+    const [fleetData, setFleetData] = useState(MOCK_FLEET_DATA);
+
+    useEffect(() => {
+        if (route.params) {
+            if (route.params.activeTab) {
+                setSelectedTab(route.params.activeTab);
+            }
+            if (route.params.refresh && route.params.newItem) {
+                // Add the new item to the top of the list
+                setFleetData(prevData => [route.params.newItem, ...prevData]);
+
+                // Clear params to prevent re-adding on subsequent renders if needed, 
+                // though in React Navigation params persist until changed. 
+                // Ideally we'd clear them but for this flow it's okay as long as we handle duplicates or just display.
+                // For a robust app, we might check if ID exists.
+                navigation.setParams({ newItem: null, refresh: false });
+            }
+        }
+    }, [route.params]);
 
     // Filtering Logic
-    const filteredData = MOCK_FLEET_DATA.filter(item => {
+    const filteredData = fleetData.filter(item => {
         if (selectedTab === 'all') return true;
         return item.status === selectedTab;
     });
 
     // Count Logic
     const counts = {
-        all: MOCK_FLEET_DATA.length,
-        rented: MOCK_FLEET_DATA.filter(i => i.status === 'rented').length,
-        available: MOCK_FLEET_DATA.filter(i => i.status === 'available').length,
+        all: fleetData.length,
+        rented: fleetData.filter(i => i.status === 'rented').length,
+        available: fleetData.filter(i => i.status === 'available').length,
     };
 
     return (
@@ -177,11 +201,11 @@ export default function FleetManagementScreen({ navigation }) {
                 >
                     <Text style={[
                         styles.statLabel,
-                        selectedTab === 'rented' ? styles.textAmber : styles.textGray
+                        selectedTab === 'rented' ? styles.textRentedActive : styles.textGray
                     ]}>مؤجر</Text>
                     <Text style={[
                         styles.statValue,
-                        selectedTab === 'rented' ? styles.textAmber : styles.textGray
+                        selectedTab === 'rented' ? styles.textRentedActive : styles.textGray
                     ]}>{counts.rented}</Text>
                 </TouchableOpacity>
 
@@ -196,11 +220,11 @@ export default function FleetManagementScreen({ navigation }) {
                 >
                     <Text style={[
                         styles.statLabel,
-                        selectedTab === 'all' ? styles.textBlack : styles.textGray
+                        selectedTab === 'all' ? styles.textAllActive : styles.textGray
                     ]}>الكل</Text>
                     <Text style={[
                         styles.statValue,
-                        selectedTab === 'all' ? styles.textBlack : styles.textGray
+                        selectedTab === 'all' ? styles.textAllActive : styles.textGray
                     ]}>{counts.all}</Text>
                 </TouchableOpacity>
             </View>
@@ -257,13 +281,14 @@ const styles = StyleSheet.create({
         borderColor: COLORS.borderLight,
     },
     statCardAllActive: {
-        backgroundColor: COLORS.primary, // Active Yellow
-        borderColor: COLORS.primary,
+        backgroundColor: COLORS.allActiveBg,
+        borderColor: COLORS.allActiveBorder,
         borderWidth: 1,
     },
     statCardRentedActive: {
-        backgroundColor: COLORS.rentedBg,
-        borderColor: COLORS.rentedText,
+        backgroundColor: COLORS.rentedActiveBg,
+        borderColor: COLORS.rentedActiveText,
+        borderWidth: 1,
     },
     statCardAvailableActive: {
         backgroundColor: COLORS.availableBg,
@@ -279,6 +304,8 @@ const styles = StyleSheet.create({
     textAmber: { color: COLORS.rentedText },
     textGreen: { color: COLORS.availableText },
     textWhite: { color: '#ffffff' },
+    textRentedActive: { color: COLORS.rentedActiveText },
+    textAllActive: { color: COLORS.allActiveText },
 
     listContent: { paddingHorizontal: 16, paddingBottom: 100 },
 
@@ -290,7 +317,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COLORS.borderLight,
     },
-    machineImage: { width: '100%', height: 140, backgroundColor: '#e5e7eb' },
+    machineImage: { width: '100%', height: 140, backgroundColor: '#e5e7eb', borderRadius: 12 },
     imagePlaceholder: {
         justifyContent: 'center',
         alignItems: 'center',

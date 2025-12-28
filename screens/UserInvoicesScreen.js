@@ -198,6 +198,7 @@ export default function UserInvoicesScreen({ navigation, route }) {
                                                 style={[styles.actionButton, styles.payButton]}
                                                 onPress={() => navigation.navigate('InvoiceDetails', {
                                                     invoice: item,
+                                                    status: item.status,
                                                     mode: 'payment',
                                                     onPaymentSuccess: () => handlePaymentSuccess(item.id)
                                                 })}
@@ -206,7 +207,7 @@ export default function UserInvoicesScreen({ navigation, route }) {
                                                 <Text style={styles.payButtonText}>ادفع الآن</Text>
                                             </TouchableOpacity>
                                         ) : (
-                                            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('InvoiceDetails', { invoice: item })}>
+                                            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, status: item.status })}>
                                                 <MaterialIcons name="visibility" size={18} color={COLORS.textDark} />
                                                 <Text style={styles.actionButtonText}>عرض</Text>
                                             </TouchableOpacity>
@@ -214,7 +215,7 @@ export default function UserInvoicesScreen({ navigation, route }) {
 
                                         <TouchableOpacity
                                             style={[styles.actionButton, { flex: 0, width: 40, borderLeftWidth: 1, borderColor: '#f1f5f9' }]}
-                                            onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, autoDownload: true })}
+                                            onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, status: item.status, autoDownload: true })}
                                         >
                                             <MaterialIcons name="download" size={18} color={COLORS.primary} />
                                         </TouchableOpacity>

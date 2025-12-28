@@ -28,7 +28,7 @@ export default function LiveChatScreen({ navigation }) {
         // Initial Greeting
         const initialGreeting = {
             id: '1',
-            text: 'مرحباً بك، كيف يمكننا مساعدتك اليوم؟',
+            text: 'مرحباً بك ، لخدمتك بشكل أسرع، الرجاء اختيار الموضوع:',
             sender: 'bot',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
@@ -36,9 +36,11 @@ export default function LiveChatScreen({ navigation }) {
 
         // Show Quick Choices
         setQuickChoices([
-            { id: 'opt1', text: 'واجهتني مشكلة في تشغيل المعدات' },
-            { id: 'opt2', text: 'الطلب لا يتوافق مع المعدات التي وصلتني' },
-            { id: 'opt3', text: 'مشكلة أخرى' },
+            { id: 'opt1', text: 'الإبلاغ عن عطل / صيانة' },
+            { id: 'opt2', text: 'تتبع الطلب / أين السائق؟' },
+            { id: 'opt3', text: 'طلب تمديد الإيجار' },
+            { id: 'opt4', text: 'الفواتير والدفع' },
+            { id: 'opt5', text: 'تحدث مع موظف' },
         ]);
     }, []);
 
@@ -53,19 +55,12 @@ export default function LiveChatScreen({ navigation }) {
         setMessages(prev => [...prev, userMsg]);
         setQuickChoices([]); // Hide choices directly after selection
 
-        // 2. Automated Response Logic
+        // 2. Automated Response Logic (Generic)
         setIsTyping(true);
 
         setTimeout(() => {
-            let botReplyText = '';
-
-            if (choice.id === 'opt3') {
-                // Scenario B: Other Problem -> Transfer to agent
-                botReplyText = 'جاري تحويلك لموظف خدمة العملاء...';
-            } else {
-                // Scenario A: Equipment/Order Issue
-                botReplyText = 'نأسف لسماع ذلك، يرجى كتابة التفاصيل وسيقوم الفريق بمتابعة طلبك.';
-            }
+            // Generic response for all simplified menu options
+            const botReplyText = 'شكراً لك، سيقوم أحد موظفينا بالرد عليك قريباً.';
 
             const botMsg = {
                 id: (Date.now() + 1).toString(),
@@ -76,9 +71,9 @@ export default function LiveChatScreen({ navigation }) {
 
             setMessages(prev => [...prev, botMsg]);
             setIsTyping(false);
-            setIsInputVisible(true); // Enable input for both scenarios
+            setIsInputVisible(true); // Enable input
 
-        }, 1500); // Simulate typing delay
+        }, 1000); // Simulate short typing delay
     };
 
     const handleSendMessage = () => {

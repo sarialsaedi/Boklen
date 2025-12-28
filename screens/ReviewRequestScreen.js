@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Dimensions, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -15,58 +15,62 @@ const COLORS = {
 
 import { useCart } from '../context/CartContext';
 
+const { width } = Dimensions.get('window');
+
 export default function ReviewRequestScreen({ navigation }) {
     const { cartItems, removeFromCart } = useCart();
     const totalItems = (cartItems || []).length;
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    const onViewableItemsChanged = useRef(({ viewableItems }) => {
+        if (viewableItems.length > 0) {
+            setActiveIndex(viewableItems[0].index);
+        }
+    }).current;
+
+    const viewabilityConfig = useRef({
+        itemVisiblePercentThreshold: 50,
+    }).current;
 
     const handleDelete = (id) => {
         removeFromCart(id);
     };
 
-    const renderItem = (item) => (
-        <View key={item.cartId} style={styles.itemContainer}>
-            <View style={styles.card}>
-                <View style={styles.imageContainer}>
-                    <Image source={{ uri: item.image }} style={styles.image} />
-                    {item.tag && (
-                        <View style={styles.statusBadge}>
-                            <View style={styles.statusDot} />
-                            <Text style={styles.statusText}>{item.tag}</Text>
-                        </View>
-                    )}
+    const renderCarouselItem = ({ item }) => (
+        <View style={styles.carouselItemContainer}>
+            <View style={styles.carouselCard}>
+                <Image source={{ uri: item.image }} style={styles.carouselImage} />
+                <View style={styles.imageOverlay}>
+                    <Text style={styles.carouselTitle}>{item.title}</Text>
+                    <Text style={styles.carouselSubtitle}>
+                        {item.quantity} x {item.subtitle}
+                    </Text>
                 </View>
-                <View style={styles.cardMain}>
-                    <View style={styles.cardInfo}>
-                        <View style={styles.titleRow}>
-                            <Text style={styles.cardTitle}>
-                                <Text style={{ color: COLORS.primary }}>{item.quantity} x </Text>
-                                {item.title}
-                            </Text>
-                        </View>
-                        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
-                        <Text style={styles.cardDetails}>
-                            ({item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'})
-                        </Text>
+                {item.tag && (
+                    <View style={styles.carouselBadge}>
+                        <View style={styles.statusDot} />
+                        <Text style={styles.badgeText}>{item.tag}</Text>
                     </View>
-                    <View style={styles.actionsColumn}>
-                        <TouchableOpacity
-                            onPress={() => handleDelete(item.cartId)}
-                            style={styles.deleteBtn}
-                        >
-                            <MaterialIcons name="delete" size={24} color={COLORS.red} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                <View style={styles.cardFooter}>
-                    <TouchableOpacity style={styles.editBtn} onPress={() => navigation.goBack()}>
-                        <MaterialIcons name="edit" size={16} color={COLORS.primary} />
-                        <Text style={styles.editBtnText}>تعديل الخيارات والكمية</Text>
-                    </TouchableOpacity>
-                </View>
+                )}
             </View>
         </View>
     );
+
+    const renderPaginationDots = () => {
+        return (
+            <View style={styles.paginationContainer}>
+                {cartItems.map((_, index) => (
+                    <View
+                        key={index}
+                        style={[
+                            styles.paginationDot,
+                            index === activeIndex ? styles.paginationDotActive : styles.paginationDotInactive
+                        ]}
+                    />
+                ))}
+            </View>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -77,7 +81,9 @@ export default function ReviewRequestScreen({ navigation }) {
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
+                        <View>
+                            <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
+                        </View>
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>مراجعة الطلب</Text>
                     <View style={styles.backButton} />
@@ -102,22 +108,45 @@ export default function ReviewRequestScreen({ navigation }) {
                         style={[styles.findProvidersBtn, { marginTop: 24, width: 200 }]}
                         onPress={() => navigation.navigate('AddMachinery')}
                     >
-                        <Text style={styles.findProvidersText}>تصفح المعدات</Text>
+                        <View>
+                            <Text style={styles.findProvidersText}>تصفح المعدات</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             ) : (
                 <>
                     <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                        <View style={styles.listContainer}>
-                            {cartItems.map(item => renderItem(item))}
+                        {/* Summary Header */}
+                        <Text style={styles.sectionTitle}>ملخص الطلب ({totalItems})</Text>
+
+                        {/* Carousel */}
+                        <View style={styles.carouselContainer}>
+                            <FlatList
+                                data={cartItems}
+                                renderItem={renderCarouselItem}
+                                keyExtractor={(item) => item.cartId.toString()}
+                                horizontal
+                                pagingEnabled={false}
+                                showsHorizontalScrollIndicator={false}
+                                onViewableItemsChanged={onViewableItemsChanged}
+                                viewabilityConfig={viewabilityConfig}
+                                contentContainerStyle={{ paddingHorizontal: 20 }}
+                                snapToInterval={width - 20}
+                                snapToAlignment="center"
+                                decelerationRate="fast"
+                                ListFooterComponent={<View style={{ width: 20 }} />}
+                            />
+                            {renderPaginationDots()}
                         </View>
 
                         <TouchableOpacity
                             style={styles.addMoreBtn}
                             onPress={() => navigation.navigate('AddMachinery')}
                         >
-                            <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
-                            <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
+                                <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
+                            </View>
                         </TouchableOpacity>
                     </ScrollView>
 
@@ -131,8 +160,10 @@ export default function ReviewRequestScreen({ navigation }) {
                             style={styles.findProvidersBtn}
                             onPress={() => navigation.navigate('FindingProviders')}
                         >
-                            <Text style={styles.findProvidersText}>العثور على مقدمي الخدمة</Text>
-                            <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Text style={styles.findProvidersText}>العثور على مقدمي الخدمة</Text>
+                                <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
+                            </View>
                         </TouchableOpacity>
                     </View>
                 </>
@@ -145,29 +176,37 @@ export default function ReviewRequestScreen({ navigation }) {
                         style={styles.navItem}
                         onPress={() => navigation.navigate('UserHome')}
                     >
-                        <MaterialIcons name="home" size={26} color={COLORS.textGray} />
-                        <Text style={styles.navLabel}>الرئيسية</Text>
+                        <View style={{ alignItems: 'center', gap: 4 }}>
+                            <MaterialIcons name="home" size={26} color={COLORS.textGray} />
+                            <Text style={styles.navLabel}>الرئيسية</Text>
+                        </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() => navigation.navigate('UserOrders')}
                     >
-                        <MaterialIcons name="receipt-long" size={26} color={COLORS.textGray} />
-                        <Text style={styles.navLabel}>طلباتي</Text>
+                        <View style={{ alignItems: 'center', gap: 4 }}>
+                            <MaterialIcons name="receipt-long" size={26} color={COLORS.textGray} />
+                            <Text style={styles.navLabel}>طلباتي</Text>
+                        </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() => navigation.navigate('UserSupport')}
                     >
-                        <MaterialIcons name="support-agent" size={26} color={COLORS.textGray} />
-                        <Text style={styles.navLabel}>الدعم</Text>
+                        <View style={{ alignItems: 'center', gap: 4 }}>
+                            <MaterialIcons name="support-agent" size={26} color={COLORS.textGray} />
+                            <Text style={styles.navLabel}>الدعم</Text>
+                        </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.navItem}
                         onPress={() => navigation.navigate('UserAccount')}
                     >
-                        <MaterialIcons name="person" size={26} color={COLORS.textGray} />
-                        <Text style={styles.navLabel}>حسابي</Text>
+                        <View style={{ alignItems: 'center', gap: 4 }}>
+                            <MaterialIcons name="person" size={26} color={COLORS.textGray} />
+                            <Text style={styles.navLabel}>حسابي</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -235,118 +274,103 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        padding: 16,
+        paddingTop: 8,
         paddingBottom: 200,
-        gap: 16,
+        gap: 24,
     },
-    card: {
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+        marginHorizontal: 20,
+        marginBottom: 8,
+        textAlign: 'right',
+    },
+    carouselContainer: {
+        marginBottom: 8,
+    },
+    carouselItemContainer: {
+        width: width - 40,
+        marginRight: 20,
+    },
+    carouselCard: {
         backgroundColor: COLORS.surfaceLight,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
-        padding: 0, // Removed padding to let image flush
+        borderRadius: 20,
+        height: 240,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 1,
-        overflow: 'hidden', // Clip image corners
-    },
-    cardMain: {
-        flexDirection: 'row',
-        padding: 12,
-        alignItems: 'flex-start',
-    },
-    imageContainer: {
-        width: '100%',
-        height: 180, // Larger height
-        backgroundColor: '#f1f5f9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+        overflow: 'hidden',
         position: 'relative',
     },
-    image: {
+    carouselImage: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
     },
-    statusBadge: {
+    imageOverlay: {
         position: 'absolute',
-        top: 12,
-        left: 12,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        padding: 16,
+    },
+    carouselTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        textAlign: 'right',
+        marginBottom: 4,
+    },
+    carouselSubtitle: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.9)',
+        textAlign: 'right',
+    },
+    carouselBadge: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
         borderRadius: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
+        gap: 6,
     },
-    statusDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: '#10b981', // Green dot
-    },
-    statusText: {
+    badgeText: {
         fontSize: 12,
         fontWeight: 'bold',
         color: '#065f46',
     },
-    cardInfo: {
-        flex: 1,
-        paddingRight: 8,
+    statusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#10b981',
     },
-    titleRow: {
+    paginationContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 4,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.textDark,
-        textAlign: 'right',
-    },
-    actionsColumn: {
-        justifyContent: 'flex-start',
-    },
-    deleteBtn: {
-        padding: 4,
-    },
-    cardDetails: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: COLORS.primary,
-        marginTop: 4,
-        textAlign: 'right',
-    },
-    cardSubtitle: {
-        fontSize: 14,
-        color: COLORS.textGray,
-        marginTop: 2,
-        textAlign: 'right',
-    },
-    cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end', // Align Edit button to left (RTL end)
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.05)',
-        padding: 12,
-        backgroundColor: '#fafaf9',
-    },
-    editBtn: {
-        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
-        gap: 6,
-        backgroundColor: 'rgba(230, 194, 23, 0.1)',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
+        marginTop: 16,
+        gap: 8,
     },
-    editBtnText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: COLORS.primary,
+    paginationDot: {
+        height: 8,
+        borderRadius: 4,
+    },
+    paginationDotActive: {
+        width: 24,
+        backgroundColor: COLORS.primary,
+    },
+    paginationDotInactive: {
+        width: 8,
+        backgroundColor: 'rgba(0,0,0,0.1)',
     },
     addMoreBtn: {
         flexDirection: 'row',
@@ -356,18 +380,19 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e2e8f0',
         borderStyle: 'dashed',
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 16,
+        padding: 20,
         backgroundColor: 'transparent',
+        marginHorizontal: 20,
     },
     addMoreText: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
         color: COLORS.textGray,
     },
     bottomSheet: {
         position: 'absolute',
-        bottom: 80, // Height of bottom nav + padding
+        bottom: 80,
         left: 0,
         right: 0,
         backgroundColor: COLORS.surfaceLight,
@@ -440,8 +465,5 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: COLORS.textGray,
         fontWeight: '500',
-    },
-    itemContainer: {
-        marginBottom: 16,
     },
 });

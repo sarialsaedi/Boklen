@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, TextInput, Modal, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, TextInput, Modal, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
+import TopNotificationBanner from '../components/TopNotificationBanner';
 
 const COLORS = {
     primary: '#E6C217',
@@ -27,6 +28,17 @@ export default function MachineConfigScreen({ navigation, route }) {
     const [isCalendarVisible, setCalendarVisible] = useState(false);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+
+    // Notification State
+    const [notification, setNotification] = useState({
+        visible: false,
+        type: 'error',
+        message: ''
+    });
+
+    const hideNotification = () => {
+        setNotification(prev => ({ ...prev, visible: false }));
+    };
 
     const onDayPress = (day) => {
         if (!startDate || (startDate && endDate)) {
@@ -75,7 +87,11 @@ export default function MachineConfigScreen({ navigation, route }) {
 
     const handleAddToCart = () => {
         if ((rentalType === 'daily' || rentalType === 'monthly') && (!startDate || !endDate)) {
-            Alert.alert('تنبيه', 'يرجى اختيار تاريخ البدء والانتهاء');
+            setNotification({
+                visible: true,
+                type: 'error',
+                message: 'يرجى اختيار تاريخ البدء والانتهاء للمتابعة.'
+            });
             return;
         }
 
@@ -96,10 +112,11 @@ export default function MachineConfigScreen({ navigation, route }) {
         };
 
         addToCart(newItem);
-        Alert.alert('تمت الإضافة', 'تم إضافة المعدة إلى طلبك بنجاح', [
-            { text: 'متابعة التسوق', onPress: () => navigation.goBack() },
-            { text: 'مراجعة الطلب', onPress: () => navigation.navigate('ReviewRequest') }
-        ]);
+        setNotification({
+            visible: true,
+            type: 'success',
+            message: 'تم إضافة المعدة إلى طلبك بنجاح'
+        });
     };
 
     if (!machine) return null;
@@ -357,6 +374,16 @@ export default function MachineConfigScreen({ navigation, route }) {
                     </View>
                 </Modal>
             </View>
+            <TopNotificationBanner
+                visible={notification.visible}
+                type={notification.type}
+                message={notification.message}
+                onDismiss={hideNotification}
+                onAction={() => {
+                    hideNotification();
+                    navigation.navigate('ReviewRequest');
+                }}
+            />
         </TouchableWithoutFeedback>
     );
 }

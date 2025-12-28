@@ -140,9 +140,7 @@ export default function UserOrdersScreen({ navigation }) {
             <View style={styles.header}>
                 <SafeAreaView edges={['top']} style={{ width: '100%' }}>
                     <View style={styles.headerRow}>
-                        <TouchableOpacity style={styles.themeToggle}>
-                            <MaterialIcons name="brightness-4" size={20} color={COLORS.textSub} />
-                        </TouchableOpacity>
+
                         <Text style={styles.screenTitle}>طلباتي</Text>
                     </View>
                 </SafeAreaView>
@@ -184,7 +182,7 @@ const styles = StyleSheet.create({
     },
     headerRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         paddingTop: 12,
     },

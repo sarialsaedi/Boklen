@@ -59,6 +59,15 @@ export default function VerificationPendingScreen({ navigation }) {
                     <MaterialIcons name="refresh" size={20} color={COLORS.primaryContent} />
                 </TouchableOpacity>
 
+                {/* Review Application Button */}
+                <TouchableOpacity
+                    style={styles.outlineButton}
+                    onPress={() => navigation.navigate('ApplicationDetails')}
+                >
+                    <Text style={styles.outlineButtonText}>مراجعة الطلب</Text>
+                    <MaterialIcons name="visibility" size={20} color={COLORS.subtextLight} />
+                </TouchableOpacity>
+
                 {/* Support Button */}
                 <TouchableOpacity
                     style={styles.secondaryButton}
@@ -140,6 +149,25 @@ const styles = StyleSheet.create({
     requestIdBold: {
         fontWeight: 'bold',
         color: COLORS.textLight,
+    },
+    outlineButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.surfaceLight,
+        height: 48,
+        borderRadius: 12,
+        paddingHorizontal: 20,
+        width: '100%',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: COLORS.borderLight,
+    },
+    outlineButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: COLORS.subtextLight,
+        marginRight: 8,
     },
     primaryButton: {
         flexDirection: 'row',

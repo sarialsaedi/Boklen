@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, I18nManager, Modal, FlatList, TouchableWithoutFeedback, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, I18nManager, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
 import InfoModal from '../components/InfoModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,6 +32,9 @@ export default function CompanyInfoScreen({ navigation }) {
     const [companyName, setCompanyName] = useState('');
     const [companyType, setCompanyType] = useState('');
     const [crNumber, setCrNumber] = useState('');
+    const [nameError, setNameError] = useState('');
+    const [crError, setCrError] = useState('');
+    const [entityError, setEntityError] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [helpModalVisible, setHelpModalVisible] = useState(false);
 
@@ -45,30 +48,35 @@ export default function CompanyInfoScreen({ navigation }) {
     };
 
     const validateForm = () => {
+        let isValid = true;
+
         // 1. Company Name Validation
-        if (!companyName.trim()) {
-            Alert.alert('خطأ', 'يرجى إدخال اسم المنشأة.');
-            return false;
+        if (!companyName || companyName.trim().length === 0) {
+            setNameError('يرجى إدخال اسم المنشأة.');
+            isValid = false;
+        } else {
+            setNameError('');
         }
 
         // 2. Entity Type Validation
         if (!companyType) {
-            Alert.alert('خطأ', 'يرجى اختيار نوع الكيان.');
-            return false;
+            setEntityError('يرجى اختيار نوع الكيان.');
+            isValid = false;
+        } else {
+            setEntityError('');
         }
 
         // 3. Commercial Registration No (CR) Validation
         // Must be exactly 10 digits, numeric, and start with 10, 40, or 70
         const crRegex = /^(10|40|70)\d{8}$/;
         if (!crRegex.test(crNumber)) {
-            Alert.alert(
-                'خطأ',
-                'رقم السجل التجاري غير صحيح. يجب أن يتكون من 10 أرقام ويبدأ بـ 10 أو 40 أو 70.'
-            );
-            return false;
+            setCrError('رقم السجل التجاري غير صحيح (يجب أن يتكون من 10 أرقام ويبدأ بـ 10، 40، أو 70).');
+            isValid = false;
+        } else {
+            setCrError('');
         }
 
-        return true;
+        return isValid;
     };
 
     const handleContinue = () => {
@@ -117,6 +125,7 @@ export default function CompanyInfoScreen({ navigation }) {
                         />
                         <MaterialIcons name="business" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </View>
+                    {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
                 </View>
 
                 {/* Company Type Input */}
@@ -128,6 +137,7 @@ export default function CompanyInfoScreen({ navigation }) {
                         </Text>
                         <MaterialIcons name="expand-more" size={24} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </TouchableOpacity>
+                    {entityError ? <Text style={styles.errorText}>{entityError}</Text> : null}
                 </View>
 
                 {/* CR Number Input */}
@@ -146,6 +156,7 @@ export default function CompanyInfoScreen({ navigation }) {
                         <MaterialIcons name="badge" size={20} color={COLORS.subtextLight} style={styles.inputIcon} />
                     </View>
                     <Text style={styles.hint}>يجب أن يتكون من 10 أرقام ويبدأ بـ 40, 10, 70...</Text>
+                    {crError ? <Text style={styles.errorText}>{crError}</Text> : null}
                 </View>
             </ScrollView>
 
@@ -398,5 +409,11 @@ const styles = StyleSheet.create({
     selectedItemText: {
         color: COLORS.primary,
         fontWeight: 'bold',
+    },
+    errorText: {
+        color: '#D32F2F',
+        fontSize: 12,
+        marginTop: 4,
+        textAlign: 'right',
     },
 });

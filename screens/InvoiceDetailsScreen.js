@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, Platform, Alert } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +23,8 @@ const InvoiceDetailsScreen = ({ route }) => {
     const navigation = useNavigation();
     const { invoice, mode, onPaymentSuccess, status: paramStatus } = route.params || {};
 
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
+
     useEffect(() => {
         if (route.params?.autoDownload) {
             // Simulate a short delay for "processing"
@@ -33,7 +35,8 @@ const InvoiceDetailsScreen = ({ route }) => {
     }, [route.params]);
 
     const status = paramStatus || invoice?.status;
-    const isCanceled = status === 'Canceled' || status === 'ملغاة';
+    // Enhanced canceled check to catch all variations
+    const isCanceled = ['Canceled', 'cancelled', 'Cancelled', 'ملغاة'].includes(status);
     const isPaymentMode = mode === 'payment';
 
     // Data - Merging props with fallbacks
@@ -96,17 +99,22 @@ const InvoiceDetailsScreen = ({ route }) => {
             return;
         }
 
-        // 2. Implement Logic (Simulation)
-        Alert.alert(
-            "تم التحميل",
-            "تم حفظ نسخة من الفاتورة بنجاح في ملفاتك (PDF).",
-            [{ text: "حسنًا" }]
-        );
+        setShowSuccessToast(true);
+        setTimeout(() => {
+            setShowSuccessToast(false);
+        }, 3000);
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+
+            {showSuccessToast && (
+                <View style={styles.toastContainer}>
+                    <MaterialIcons name="check-circle" size={24} color="#FFF" style={{ marginRight: 8 }} />
+                    <Text style={styles.toastText}>تم حفظ الفاتورة في الصور</Text>
+                </View>
+            )}
 
             {/* Top Navigation */}
             <View style={styles.navHeader}>
@@ -132,8 +140,8 @@ const InvoiceDetailsScreen = ({ route }) => {
                     {/* Top Row: User/Status Badge for context (Optional) or just Status */}
                     <View style={styles.cardHeaderRow}>
                         {isCanceled ? (
-                            <View style={[styles.statusBadge, { backgroundColor: '#FFEBEE' }]}>
-                                <Text style={[styles.statusText, { color: '#D32F2F' }]}>ملغاة</Text>
+                            <View style={[styles.statusBadge, { backgroundColor: '#F5F5F5' }]}>
+                                <Text style={[styles.statusText, { color: '#616161' }]}>تم الإلغاء</Text>
                             </View>
                         ) : (
                             <View style={styles.statusBadge}>
@@ -148,7 +156,7 @@ const InvoiceDetailsScreen = ({ route }) => {
                     {/* Main Amount */}
                     <View style={styles.amountContainer}>
                         <Text style={styles.totalLabelSmall}>المبلغ الكلي</Text>
-                        <Text style={[styles.totalAmountLarge, isCanceled && { color: '#808080' }]}>{invoiceData.totalAmount}</Text>
+                        <Text style={[styles.totalAmountLarge, isCanceled && { color: '#616161' }]}>{invoiceData.totalAmount}</Text>
                     </View>
 
                     {/* Divider */}
@@ -245,8 +253,17 @@ const InvoiceDetailsScreen = ({ route }) => {
                 <View style={styles.bottomCard}>
                     {/* Action Button: Payment OR Download */}
                     {isCanceled ? (
-                        <View style={[styles.primaryButton, { backgroundColor: '#E0E0E0' }]}>
-                            <Text style={[styles.primaryButtonText, { color: '#757575' }]}>الفاتورة ملغاة</Text>
+                        <View style={[
+                            styles.primaryButton,
+                            {
+                                backgroundColor: '#F5F5F5', // Light Grey to match design
+                                borderWidth: 0,
+                                opacity: 1,
+                                cursor: 'default' // not clickable intent
+                            }
+                        ]}>
+                            {/* No icon or block icon? User asked for: "هذه الفاتورة ملغاة" (This invoice is canceled) disabled block */}
+                            <Text style={[styles.primaryButtonText, { color: '#616161' }]}>هذه الفاتورة ملغاة</Text>
                         </View>
                     ) : isPaymentMode ? (
                         <TouchableOpacity style={styles.primaryButton} onPress={handlePayment}>
@@ -472,6 +489,28 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
+    },
+    toastContainer: {
+        position: 'absolute',
+        top: 60,
+        zIndex: 100,
+        alignSelf: 'center',
+        backgroundColor: '#333333',
+        borderRadius: 25,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    toastText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
 });
 

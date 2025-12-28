@@ -50,6 +50,7 @@ import UploadDocsScreen from './screens/UploadDocsScreen';
 import VerificationPendingScreen from './screens/VerificationPendingScreen';
 import FleetManagementScreen from './screens/FleetManagementScreen';
 import AddMachineScreen from './screens/AddMachineScreen';
+import ApplicationDetailsScreen from './screens/ApplicationDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -121,6 +122,7 @@ export default function App() {
             <Stack.Screen name="VerificationPending" component={VerificationPendingScreen} />
             <Stack.Screen name="FleetManagement" component={FleetManagementScreen} />
             <Stack.Screen name="AddMachine" component={AddMachineScreen} />
+            <Stack.Screen name="ApplicationDetails" component={ApplicationDetailsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>
