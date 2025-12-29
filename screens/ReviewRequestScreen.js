@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Dimensions, FlatList } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -15,23 +15,11 @@ const COLORS = {
 
 import { useCart } from '../context/CartContext';
 
-const { width } = Dimensions.get('window');
+
 
 export default function ReviewRequestScreen({ navigation }) {
     const { cartItems, removeFromCart } = useCart();
     const totalItems = (cartItems || []).length;
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    const onViewableItemsChanged = useRef(({ viewableItems }) => {
-        if (viewableItems.length > 0) {
-            setActiveIndex(viewableItems[0].index);
-        }
-    }).current;
-
-    const viewabilityConfig = useRef({
-        itemVisiblePercentThreshold: 50,
-    }).current;
-
     const handleDelete = (id) => {
         removeFromCart(id);
     };
@@ -56,21 +44,7 @@ export default function ReviewRequestScreen({ navigation }) {
         </View>
     );
 
-    const renderPaginationDots = () => {
-        return (
-            <View style={styles.paginationContainer}>
-                {cartItems.map((_, index) => (
-                    <View
-                        key={index}
-                        style={[
-                            styles.paginationDot,
-                            index === activeIndex ? styles.paginationDotActive : styles.paginationDotInactive
-                        ]}
-                    />
-                ))}
-            </View>
-        );
-    };
+
 
     return (
         <View style={styles.container}>
@@ -115,40 +89,32 @@ export default function ReviewRequestScreen({ navigation }) {
                 </View>
             ) : (
                 <>
-                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                        {/* Summary Header */}
-                        <Text style={styles.sectionTitle}>ملخص الطلب ({totalItems})</Text>
-
-                        {/* Carousel */}
-                        <View style={styles.carouselContainer}>
-                            <FlatList
-                                data={cartItems}
-                                renderItem={renderCarouselItem}
-                                keyExtractor={(item) => item.cartId.toString()}
-                                horizontal
-                                pagingEnabled={false}
-                                showsHorizontalScrollIndicator={false}
-                                onViewableItemsChanged={onViewableItemsChanged}
-                                viewabilityConfig={viewabilityConfig}
-                                contentContainerStyle={{ paddingHorizontal: 20 }}
-                                snapToInterval={width - 20}
-                                snapToAlignment="center"
-                                decelerationRate="fast"
-                                ListFooterComponent={<View style={{ width: 20 }} />}
-                            />
-                            {renderPaginationDots()}
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.addMoreBtn}
-                            onPress={() => navigation.navigate('AddMachinery')}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
-                                <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
+                    {/* Main List */}
+                    <FlatList
+                        data={cartItems}
+                        renderItem={renderCarouselItem}
+                        keyExtractor={(item) => item.cartId.toString()}
+                        horizontal={false}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.scrollContent}
+                        ListHeaderComponent={
+                            <Text style={styles.sectionTitle}>ملخص الطلب ({totalItems})</Text>
+                        }
+                        ListFooterComponent={
+                            <View>
+                                <TouchableOpacity
+                                    style={styles.addMoreBtn}
+                                    onPress={() => navigation.navigate('AddMachinery')}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <MaterialIcons name="add-circle" size={24} color={COLORS.textGray} />
+                                        <Text style={styles.addMoreText}>أضف المزيد من المعدات</Text>
+                                    </View>
+                                </TouchableOpacity>
+                                <View style={{ height: 100 }} />
                             </View>
-                        </TouchableOpacity>
-                    </ScrollView>
+                        }
+                    />
 
                     {/* Bottom Sheet */}
                     <View style={styles.bottomSheet}>
@@ -286,12 +252,10 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textAlign: 'right',
     },
-    carouselContainer: {
-        marginBottom: 8,
-    },
     carouselItemContainer: {
-        width: width - 40,
-        marginRight: 20,
+        width: '100%',
+        marginBottom: 16,
+        paddingHorizontal: 20,
     },
     carouselCard: {
         backgroundColor: COLORS.surfaceLight,
@@ -353,25 +317,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         backgroundColor: '#10b981',
     },
-    paginationContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 16,
-        gap: 8,
-    },
-    paginationDot: {
-        height: 8,
-        borderRadius: 4,
-    },
-    paginationDotActive: {
-        width: 24,
-        backgroundColor: COLORS.primary,
-    },
-    paginationDotInactive: {
-        width: 8,
-        backgroundColor: 'rgba(0,0,0,0.1)',
-    },
+
     addMoreBtn: {
         flexDirection: 'row',
         alignItems: 'center',

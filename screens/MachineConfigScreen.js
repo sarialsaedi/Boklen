@@ -122,258 +122,260 @@ export default function MachineConfigScreen({ navigation, route }) {
     if (!machine) return null;
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-                {/* Header */}
-                <SafeAreaView edges={['top']} style={styles.header}>
-                    <View style={styles.headerContent}>
-                        <TouchableOpacity
-                            style={styles.iconButton}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
-                        </TouchableOpacity>
-                        <Text style={styles.headerTitle}>تخصيص المعدة</Text>
-                        <View style={styles.iconButton} />
-                    </View>
-                </SafeAreaView>
-
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={{ flex: 1 }}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={styles.scrollContent}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {/* Machine Details Card */}
-                        <View style={styles.machineCard}>
-                            <View style={styles.machineRow}>
-                                <View style={styles.imageContainer}>
-                                    <Image source={{ uri: machine.image }} style={styles.image} />
-                                </View>
-                                <View style={styles.machineInfo}>
-                                    <Text style={styles.machineTitle}>{machine.title}</Text>
-                                    <Text style={styles.machineSubtitle}>{machine.subtitle}</Text>
-                                    <View style={styles.verifiedTag}>
-                                        <MaterialIcons name="verified" size={14} color={COLORS.primary} />
-                                        <Text style={styles.verifiedText}>معدات مضمونة</Text>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
-
-                        {/* Rental Type */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>نوع الإيجار</Text>
-                            <View style={styles.rentalTypesGrid}>
-                                {['trip', 'daily', 'monthly'].map((type) => (
-                                    <TouchableOpacity
-                                        key={type}
-                                        style={[
-                                            styles.rentalTypeCard,
-                                            rentalType === type && styles.rentalTypeActive
-                                        ]}
-                                        onPress={() => handleRentalTypeSelect(type)}
-                                    >
-                                        <MaterialIcons
-                                            name={type === 'trip' ? 'local-shipping' : type === 'daily' ? 'calendar-today' : 'calendar-view-month'}
-                                            size={32}
-                                            color={rentalType === type ? COLORS.primary : '#94a3b8'}
-                                        />
-                                        <Text style={styles.rentalTypeName}>
-                                            {type === 'trip' ? 'بالرد' : type === 'daily' ? 'يومية' : 'شهرية'}
-                                        </Text>
-                                        {rentalType === type && (
-                                            <View style={styles.checkIcon}>
-                                                <MaterialIcons name="check" size={14} color="black" />
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Operating Options */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>خيارات التشغيل</Text>
-                            <View style={styles.optionsList}>
-                                <TouchableOpacity
-                                    style={styles.optionCard}
-                                    onPress={() => setDriverOption('with_driver')}
-                                >
-                                    <View style={styles.optionRow}>
-                                        <View style={styles.optionIcon}>
-                                            <MaterialIcons name="person" size={24} color="#64748b" />
-                                        </View>
-                                        <View style={styles.optionInfo}>
-                                            <Text style={styles.optionTitle}>مع سائق</Text>
-                                            <Text style={styles.optionSub}>يشمل تكاليف السائق والاعاشة</Text>
-                                        </View>
-                                        <View style={styles.radioContainer}>
-                                            {driverOption === 'with_driver' && <View style={styles.radioInner} />}
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={styles.optionCard}
-                                    onPress={() => setDriverOption('without_driver')}
-                                >
-                                    <View style={styles.optionRow}>
-                                        <View style={styles.optionIcon}>
-                                            <MaterialIcons name="no-accounts" size={24} color="#64748b" />
-                                        </View>
-                                        <View style={styles.optionInfo}>
-                                            <Text style={styles.optionTitle}>بدون سائق</Text>
-                                            <Text style={styles.optionSub}>توفير السائق على المستأجر</Text>
-                                        </View>
-                                        <View style={styles.radioContainer}>
-                                            {driverOption === 'without_driver' && <View style={styles.radioInner} />}
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Quantity or Pricing Breakdown */}
-                        {rentalType === 'trip' ? (
-                            <View style={styles.pricingCard}>
-                                <Text style={styles.sectionTitle}>تفاصيل السعر</Text>
-
-                                <View style={styles.inputRow}>
-                                    <Text style={styles.label}>عدد الردود:</Text>
-                                    <View style={styles.quantityInputContainer}>
-                                        <TouchableOpacity
-                                            style={styles.qtyBtnSmall}
-                                            onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                                        >
-                                            <MaterialIcons name="remove" size={16} color={COLORS.textDark} />
-                                        </TouchableOpacity>
-                                        <TextInput
-                                            style={styles.quantityInput}
-                                            value={String(quantity)}
-                                            keyboardType="numeric"
-                                            returnKeyType="done"
-                                            onSubmitEditing={Keyboard.dismiss} // Added
-                                            onChangeText={(text) => {
-                                                const val = parseInt(text);
-                                                if (!isNaN(val) && val > 0) setQuantity(val);
-                                                else if (text === '') setQuantity(0);
-                                            }}
-                                        />
-                                        <TouchableOpacity
-                                            style={[styles.qtyBtnSmall, styles.qtyBtnAdd]}
-                                            onPress={() => setQuantity(quantity + 1)}
-                                        >
-                                            <MaterialIcons name="add" size={16} color={COLORS.primaryContent} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-
-                                <View style={styles.divider} />
-
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>سعر الرد الأساسي:</Text>
-                                    <Text style={styles.priceValue}>{BASE_PRICE_PER_LOAD} ر.س</Text>
-                                </View>
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>الإجمالي الجزئي:</Text>
-                                    <Text style={styles.priceValue}>{subtotal} ر.س</Text>
-                                </View>
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>ضريبة القيمة المضافة (15%):</Text>
-                                    <Text style={styles.priceValue}>{vat.toFixed(2)} ر.س</Text>
-                                </View>
-                                <View style={[styles.priceRow, styles.totalRow]}>
-                                    <Text style={styles.totalLabel}>الإجمالي النهائي:</Text>
-                                    <Text style={styles.totalValue}>{total.toFixed(2)} ر.س</Text>
-                                </View>
-                            </View>
-                        ) : (
-                            <View style={styles.quantityCard}>
-                                <View>
-                                    <Text style={styles.quantityTitle}>المدة المطلوبة</Text>
-                                    <Text style={styles.quantitySub}>
-                                        {startDate && endDate
-                                            ? `${startDate} إلى ${endDate}`
-                                            : 'يرجى تحديد التاريخ'}
-                                    </Text>
-                                </View>
-                                <TouchableOpacity onPress={() => setCalendarVisible(true)}>
-                                    <MaterialIcons name="edit-calendar" size={28} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                        )}
-
-                        {/* Notes */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>ملاحظات إضافية (اختياري)</Text>
-                            <TextInput
-                                style={styles.notesInput}
-                                placeholder="مثال: يرجى توفير لي (هوز) إضافي بطول 10 متر..."
-                                placeholderTextColor="#9ca3af"
-                                multiline
-                                textAlignVertical="top"
-                                value={notes}
-                                onChangeText={setNotes}
-                                returnKeyType="done"
-                                blurOnSubmit={true} // Allow keyboard dismiss on enter
-                                onSubmitEditing={Keyboard.dismiss}
-                            />
-                        </View>
-
-                    </ScrollView>
-
-                    {/* Bottom Action */}
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={styles.addToCartBtn}
-                            onPress={handleAddToCart}
-                        >
-                            <MaterialIcons name="add-shopping-cart" size={24} color={COLORS.primaryContent} />
-                            <Text style={styles.addToCartText}>إضافة إلى الطلب</Text>
-                        </TouchableOpacity>
-                    </View>
-                </KeyboardAvoidingView>
-                {/* Calendar Modal */}
-                <Modal
-                    visible={isCalendarVisible}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setCalendarVisible(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>اختيار التاريخ</Text>
-                                <TouchableOpacity onPress={() => setCalendarVisible(false)}>
-                                    <MaterialIcons name="close" size={24} color={COLORS.textDark} />
-                                </TouchableOpacity>
-                            </View>
-                            <Calendar
-                                markingType={'period'}
-                                markedDates={getMarkedDates()}
-                                onDayPress={onDayPress}
-                                theme={{
-                                    selectedDayBackgroundColor: COLORS.primary,
-                                    selectedDayTextColor: 'black',
-                                    todayTextColor: COLORS.primary,
-                                    arrowColor: COLORS.primary,
-                                }}
-                            />
+        <View style={{ flex: 1 }}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.container}>
+                    {/* Header */}
+                    <SafeAreaView edges={['top']} style={styles.header}>
+                        <View style={styles.headerContent}>
                             <TouchableOpacity
-                                style={styles.modalBtn}
-                                onPress={() => setCalendarVisible(false)}
+                                style={styles.iconButton}
+                                onPress={() => navigation.goBack()}
                             >
-                                <Text style={styles.modalBtnText}>تأكيد</Text>
+                                <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
+                            </TouchableOpacity>
+                            <Text style={styles.headerTitle}>تخصيص المعدة</Text>
+                            <View style={styles.iconButton} />
+                        </View>
+                    </SafeAreaView>
+
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={{ flex: 1 }}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+                    >
+                        <ScrollView
+                            style={styles.scrollView}
+                            contentContainerStyle={styles.scrollContent}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {/* Machine Details Card */}
+                            <View style={styles.machineCard}>
+                                <View style={styles.machineRow}>
+                                    <View style={styles.imageContainer}>
+                                        <Image source={{ uri: machine.image }} style={styles.image} />
+                                    </View>
+                                    <View style={styles.machineInfo}>
+                                        <Text style={styles.machineTitle}>{machine.title}</Text>
+                                        <Text style={styles.machineSubtitle}>{machine.subtitle}</Text>
+                                        <View style={styles.verifiedTag}>
+                                            <MaterialIcons name="verified" size={14} color={COLORS.primary} />
+                                            <Text style={styles.verifiedText}>معدات مضمونة</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Rental Type */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>نوع الإيجار</Text>
+                                <View style={styles.rentalTypesGrid}>
+                                    {['trip', 'daily', 'monthly'].map((type) => (
+                                        <TouchableOpacity
+                                            key={type}
+                                            style={[
+                                                styles.rentalTypeCard,
+                                                rentalType === type && styles.rentalTypeActive
+                                            ]}
+                                            onPress={() => handleRentalTypeSelect(type)}
+                                        >
+                                            <MaterialIcons
+                                                name={type === 'trip' ? 'local-shipping' : type === 'daily' ? 'calendar-today' : 'calendar-view-month'}
+                                                size={32}
+                                                color={rentalType === type ? COLORS.primary : '#94a3b8'}
+                                            />
+                                            <Text style={styles.rentalTypeName}>
+                                                {type === 'trip' ? 'بالرد' : type === 'daily' ? 'يومية' : 'شهرية'}
+                                            </Text>
+                                            {rentalType === type && (
+                                                <View style={styles.checkIcon}>
+                                                    <MaterialIcons name="check" size={14} color="black" />
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            {/* Operating Options */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>خيارات التشغيل</Text>
+                                <View style={styles.optionsList}>
+                                    <TouchableOpacity
+                                        style={styles.optionCard}
+                                        onPress={() => setDriverOption('with_driver')}
+                                    >
+                                        <View style={styles.optionRow}>
+                                            <View style={styles.optionIcon}>
+                                                <MaterialIcons name="person" size={24} color="#64748b" />
+                                            </View>
+                                            <View style={styles.optionInfo}>
+                                                <Text style={styles.optionTitle}>مع سائق</Text>
+                                                <Text style={styles.optionSub}>يشمل تكاليف السائق والاعاشة</Text>
+                                            </View>
+                                            <View style={styles.radioContainer}>
+                                                {driverOption === 'with_driver' && <View style={styles.radioInner} />}
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.optionCard}
+                                        onPress={() => setDriverOption('without_driver')}
+                                    >
+                                        <View style={styles.optionRow}>
+                                            <View style={styles.optionIcon}>
+                                                <MaterialIcons name="no-accounts" size={24} color="#64748b" />
+                                            </View>
+                                            <View style={styles.optionInfo}>
+                                                <Text style={styles.optionTitle}>بدون سائق</Text>
+                                                <Text style={styles.optionSub}>توفير السائق على المستأجر</Text>
+                                            </View>
+                                            <View style={styles.radioContainer}>
+                                                {driverOption === 'without_driver' && <View style={styles.radioInner} />}
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Quantity or Pricing Breakdown */}
+                            {rentalType === 'trip' ? (
+                                <View style={styles.pricingCard}>
+                                    <Text style={styles.sectionTitle}>تفاصيل السعر</Text>
+
+                                    <View style={styles.inputRow}>
+                                        <Text style={styles.label}>عدد الردود:</Text>
+                                        <View style={styles.quantityInputContainer}>
+                                            <TouchableOpacity
+                                                style={styles.qtyBtnSmall}
+                                                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                                            >
+                                                <MaterialIcons name="remove" size={16} color={COLORS.textDark} />
+                                            </TouchableOpacity>
+                                            <TextInput
+                                                style={styles.quantityInput}
+                                                value={String(quantity)}
+                                                keyboardType="numeric"
+                                                returnKeyType="done"
+                                                onSubmitEditing={Keyboard.dismiss} // Added
+                                                onChangeText={(text) => {
+                                                    const val = parseInt(text);
+                                                    if (!isNaN(val) && val > 0) setQuantity(val);
+                                                    else if (text === '') setQuantity(0);
+                                                }}
+                                            />
+                                            <TouchableOpacity
+                                                style={[styles.qtyBtnSmall, styles.qtyBtnAdd]}
+                                                onPress={() => setQuantity(quantity + 1)}
+                                            >
+                                                <MaterialIcons name="add" size={16} color={COLORS.primaryContent} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.divider} />
+
+                                    <View style={styles.priceRow}>
+                                        <Text style={styles.priceLabel}>سعر الرد الأساسي:</Text>
+                                        <Text style={styles.priceValue}>{BASE_PRICE_PER_LOAD} ر.س</Text>
+                                    </View>
+                                    <View style={styles.priceRow}>
+                                        <Text style={styles.priceLabel}>الإجمالي الجزئي:</Text>
+                                        <Text style={styles.priceValue}>{subtotal} ر.س</Text>
+                                    </View>
+                                    <View style={styles.priceRow}>
+                                        <Text style={styles.priceLabel}>ضريبة القيمة المضافة (15%):</Text>
+                                        <Text style={styles.priceValue}>{vat.toFixed(2)} ر.س</Text>
+                                    </View>
+                                    <View style={[styles.priceRow, styles.totalRow]}>
+                                        <Text style={styles.totalLabel}>الإجمالي النهائي:</Text>
+                                        <Text style={styles.totalValue}>{total.toFixed(2)} ر.س</Text>
+                                    </View>
+                                </View>
+                            ) : (
+                                <View style={styles.quantityCard}>
+                                    <View>
+                                        <Text style={styles.quantityTitle}>المدة المطلوبة</Text>
+                                        <Text style={styles.quantitySub}>
+                                            {startDate && endDate
+                                                ? `${startDate} إلى ${endDate}`
+                                                : 'يرجى تحديد التاريخ'}
+                                        </Text>
+                                    </View>
+                                    <TouchableOpacity onPress={() => setCalendarVisible(true)}>
+                                        <MaterialIcons name="edit-calendar" size={28} color={COLORS.primary} />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {/* Notes */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>ملاحظات إضافية (اختياري)</Text>
+                                <TextInput
+                                    style={styles.notesInput}
+                                    placeholder="مثال: يرجى توفير لي (هوز) إضافي بطول 10 متر..."
+                                    placeholderTextColor="#9ca3af"
+                                    multiline
+                                    textAlignVertical="top"
+                                    value={notes}
+                                    onChangeText={setNotes}
+                                    returnKeyType="done"
+                                    blurOnSubmit={true} // Allow keyboard dismiss on enter
+                                    onSubmitEditing={Keyboard.dismiss}
+                                />
+                            </View>
+
+                        </ScrollView>
+
+                        {/* Bottom Action */}
+                        <View style={styles.footer}>
+                            <TouchableOpacity
+                                style={styles.addToCartBtn}
+                                onPress={handleAddToCart}
+                            >
+                                <MaterialIcons name="add-shopping-cart" size={24} color={COLORS.primaryContent} />
+                                <Text style={styles.addToCartText}>إضافة إلى الطلب</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
-                </Modal>
-            </View>
+                    </KeyboardAvoidingView>
+                    {/* Calendar Modal */}
+                    <Modal
+                        visible={isCalendarVisible}
+                        transparent={true}
+                        animationType="slide"
+                        onRequestClose={() => setCalendarVisible(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.modalContent}>
+                                <View style={styles.modalHeader}>
+                                    <Text style={styles.modalTitle}>اختيار التاريخ</Text>
+                                    <TouchableOpacity onPress={() => setCalendarVisible(false)}>
+                                        <MaterialIcons name="close" size={24} color={COLORS.textDark} />
+                                    </TouchableOpacity>
+                                </View>
+                                <Calendar
+                                    markingType={'period'}
+                                    markedDates={getMarkedDates()}
+                                    onDayPress={onDayPress}
+                                    theme={{
+                                        selectedDayBackgroundColor: COLORS.primary,
+                                        selectedDayTextColor: 'black',
+                                        todayTextColor: COLORS.primary,
+                                        arrowColor: COLORS.primary,
+                                    }}
+                                />
+                                <TouchableOpacity
+                                    style={styles.modalBtn}
+                                    onPress={() => setCalendarVisible(false)}
+                                >
+                                    <Text style={styles.modalBtnText}>تأكيد</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
+                </View>
+            </TouchableWithoutFeedback>
             <TopNotificationBanner
                 visible={notification.visible}
                 type={notification.type}
@@ -384,7 +386,7 @@ export default function MachineConfigScreen({ navigation, route }) {
                     navigation.navigate('ReviewRequest');
                 }}
             />
-        </TouchableWithoutFeedback>
+        </View>
     );
 }
 
