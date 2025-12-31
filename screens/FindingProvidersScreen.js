@@ -1,17 +1,21 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, Image, Animated, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useCart } from '../context/CartContext';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
     textGray: '#5c5a4d',
+    red: '#ef4444',
 };
 
 export default function FindingProvidersScreen({ navigation }) {
+    const { cartItems } = useCart();
+
     // Animation values
     const pulseAnim = new Animated.Value(1);
     const progressWidth = new Animated.Value(20); // Starts at 20%
@@ -48,6 +52,8 @@ export default function FindingProvidersScreen({ navigation }) {
         return () => clearTimeout(timer);
     }, []);
 
+    const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -61,7 +67,7 @@ export default function FindingProvidersScreen({ navigation }) {
                 </View>
             </SafeAreaView>
 
-            <View style={styles.content}>
+            <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
                 {/* Stepper Dots */}
                 <View style={styles.stepperContainer}>
                     <View style={styles.dotFilled} />
@@ -88,67 +94,76 @@ export default function FindingProvidersScreen({ navigation }) {
                 </View>
 
                 {/* Request Summary Card */}
-                <View style={styles.summaryCard}>
-                    <View style={styles.loadingBar} />
+                {cartItems.length > 0 && (
+                    <View style={styles.summaryCard}>
+                        <View style={styles.loadingBar} />
 
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.cardHeaderTitle}>ملخص الطلب (٣ معدات)</Text>
-                        <View style={styles.activeTag}>
-                            <View style={styles.activeDot} />
-                            <Text style={styles.activeText}>نشط</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.cardItems}>
-                        {/* Item 1 */}
-                        <View style={styles.cardItem}>
-                            <View style={styles.itemImageContainer}>
-                                <Image source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4D0aFVagLz3E02lodHN8GPVm8NVelqsDiQmDnpUxx7q57A4pE1XqaartSCizA-yQctWKpMf1_L1HeoNHYXPcTn2SJ7joOMyd4Uc82t1bImv-MTWqqIQPipO6qGVSRRcQ5G3ZMfqe2zja2uaNle_qbVn9vJa8D3lgy7An5RyZiaAjrapeu_rWQNNcCF5Knm_5NCAAextI0Utzz93dDxjl2zMN26A6CiX6Wr1AcLzU7fWvb0voKTXUErGdsCWYkQrz9cjcxx9jpDLg' }} style={styles.itemImage} />
-                            </View>
-                            <View style={styles.itemInfo}>
-                                <Text style={styles.itemTitle} numberOfLines={1}>٢ x حفارة - ٢٠ طن</Text>
-                                <Text style={styles.itemSub} numberOfLines={1}>مع سائق، يومية</Text>
-                            </View>
-                            <View style={styles.searchIconContainer}>
-                                <MaterialIcons name="search" size={14} color={COLORS.primary} />
+                        <View style={styles.cardHeader}>
+                            <Text style={styles.cardHeaderTitle}>ملخص الطلب ({totalItems} معدات)</Text>
+                            <View style={styles.activeTag}>
+                                <View style={styles.activeDot} />
+                                <Text style={styles.activeText}>نشط</Text>
                             </View>
                         </View>
 
-                        {/* Item 2 */}
-                        <View style={styles.cardItem}>
-                            <View style={styles.itemImageContainer}>
-                                <Image source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAflER3WWr2o4xrc_214_7VimkbDCf27pDZEOOPnQ2ytEaVeWbfpE4Ir5Qa0kGW0_PAwrca48bBn-dE4rzSdy2kMjVyRgSNHaEbZ2ygz38YZwBwNDW4nZt5LYTkfyHtTZ54T-ZzXFd9ZTEf-zpF9_XXrNez5S5ok7g7B15dS7FzXgE23cP5r1EX1gjvdgRDBzpwI-M13wrEaSt4BHZZ9lJRTgspej7DDt6wmDRSkUzsT2Z2G1D69RlH8dKghwHd8oLSseb8FI2dc28' }} style={styles.itemImage} />
-                            </View>
-                            <View style={styles.itemInfo}>
-                                <Text style={styles.itemTitle} numberOfLines={1}>١ x شاحنة قلابة</Text>
-                                <Text style={styles.itemSub} numberOfLines={1}>بدون سائق، شهرية</Text>
-                            </View>
-                            <View style={styles.searchIconContainer}>
-                                <MaterialIcons name="search" size={14} color={COLORS.primary} />
-                            </View>
+                        <View style={styles.cardItems}>
+                            {cartItems.map((item) => (
+                                <View key={item.cartId} style={styles.cardItem}>
+                                    <View style={styles.itemImageContainer}>
+                                        <Image source={{ uri: item.image }} style={styles.itemImage} />
+                                    </View>
+                                    <View style={styles.itemInfo}>
+                                        <Text style={styles.itemTitle} numberOfLines={1}>
+                                            <Text style={{ color: COLORS.primary }}>{item.quantity || 1} x </Text>
+                                            {item.title}
+                                        </Text>
+                                        <Text style={styles.itemSub} numberOfLines={1}>
+                                            {item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.searchIconContainer}>
+                                        <MaterialIcons name="search" size={14} color={COLORS.primary} />
+                                    </View>
+                                </View>
+                            ))}
                         </View>
                     </View>
-                </View>
-            </View>
+                )}
+            </ScrollView>
 
-            {/* Bottom Nav Placeholder (Visual only) */}
-            <View style={styles.bottomNav}>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="home" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navText}>الرئيسية</Text>
+            {/* Bottom Nav */}
+            <SafeAreaView edges={['bottom']} style={styles.bottomNav}>
+                <View style={styles.bottomNavContent}>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserHome')}
+                    >
+                        <MaterialIcons name="home" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الرئيسية</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserOrders')}
+                    >
+                        <MaterialIcons name="receipt-long" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>طلباتي</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserSupport')}
+                    >
+                        <MaterialIcons name="support-agent" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الدعم</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserAccount')}
+                    >
+                        <MaterialIcons name="person" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>حسابي</Text>
+                    </TouchableOpacity>
                 </View>
-                <View style={styles.navItemCenter}>
-                    <View style={styles.navBadge}>
-                        <Text style={styles.navBadgeText}>2</Text>
-                    </View>
-                    <MaterialIcons name="assignment" size={24} color={COLORS.primary} />
-                    <Text style={[styles.navText, { fontWeight: 'bold', color: COLORS.primary }]}>الطلبات</Text>
-                </View>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="person" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navText}>حسابي</Text>
-                </View>
-            </View>
+            </SafeAreaView>
         </View>
     );
 }
@@ -182,9 +197,12 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
+    },
+    scrollContent: {
         alignItems: 'center',
         paddingTop: 24,
         paddingHorizontal: 24,
+        paddingBottom: 100, // Space for bottom nav
     },
     stepperContainer: {
         flexDirection: 'row',
@@ -255,7 +273,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 5,
         borderWidth: 4,
-        borderColor: 'rgba(236, 200, 19, 0.1)',
+        borderColor: 'rgba(230, 194, 23, 0.1)',
     },
     searchingTitle: {
         fontSize: 20,
@@ -355,46 +373,34 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     bottomNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingVertical: 12,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         backgroundColor: COLORS.surfaceLight,
         borderTopWidth: 1,
-        borderTopColor: '#e6e4db',
+        borderTopColor: '#e2e8f0',
+    },
+    bottomNavContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        height: 64,
+        alignItems: 'center',
     },
     navItem: {
         alignItems: 'center',
-        gap: 4,
-    },
-    navItemCenter: {
-        alignItems: 'center',
-        gap: 4,
-    },
-    navText: {
-        fontSize: 10,
-        color: COLORS.textGray,
-    },
-    navBadge: {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#ef4444',
-        alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1,
+        gap: 4,
+        minWidth: 64,
     },
-    navBadgeText: {
-        color: 'white',
-        fontSize: 9,
-        fontWeight: 'bold',
+    navLabel: {
+        fontSize: 10,
+        fontWeight: '500',
+        color: COLORS.textGray,
     },
 });

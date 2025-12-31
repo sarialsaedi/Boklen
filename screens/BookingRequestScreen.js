@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#f59e0b',
+    primary: '#E6C217',
     backgroundLight: '#f8fafc',
     surfaceLight: '#ffffff',
     textDark: '#0f172a',
@@ -93,7 +93,7 @@ export default function BookingRequestScreen({ navigation }) {
                             </TouchableOpacity>
                             <Text style={styles.durationValue}>{duration}</Text>
                             <TouchableOpacity
-                                style={[styles.counterButton, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}
+                                style={[styles.counterButton, { backgroundColor: 'rgba(230, 194, 23, 0.1)' }]}
                                 onPress={() => setDuration(duration + 1)}
                             >
                                 <MaterialIcons name="add" size={24} color={COLORS.primary} />
@@ -121,7 +121,7 @@ export default function BookingRequestScreen({ navigation }) {
                 {/* Cost Summary */}
                 <View style={styles.costSummary}>
                     <View style={styles.summaryHeader}>
-                        <MaterialIcons name="receipt-long" size={24} color="#d97706" />
+                        <MaterialIcons name="receipt-long" size={24} color="#E6C217" />
                         <Text style={styles.summaryTitle}>ملخص التكلفة</Text>
                     </View>
 
@@ -258,14 +258,14 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     tag: {
-        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
     },
     tagText: {
         fontSize: 12,
-        color: '#b45309',
+        color: '#947d03',
         fontWeight: 'bold',
     },
     price: {
@@ -388,11 +388,11 @@ const styles = StyleSheet.create({
         textAlign: 'right',
     },
     costSummary: {
-        backgroundColor: '#fffbeb',
+        backgroundColor: 'rgba(230, 194, 23, 0.05)',
         borderRadius: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: '#fef3c7',
+        borderColor: 'rgba(230, 194, 23, 0.2)',
     },
     summaryHeader: {
         flexDirection: 'row',
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     },
     costDivider: {
         height: 1,
-        backgroundColor: '#fde68a',
+        backgroundColor: 'rgba(230, 194, 23, 0.3)',
         marginVertical: 12,
         borderStyle: 'dashed',
         borderWidth: 0.5,

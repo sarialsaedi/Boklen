@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
@@ -12,6 +12,9 @@ const COLORS = {
     border: '#e6e4db',
     green: '#15803d',
 };
+
+import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 
 const PROVIDERS = [
     {
@@ -51,6 +54,155 @@ const PROVIDERS = [
 ];
 
 export default function MatchingProvidersScreen({ navigation }) {
+    const { cartItems } = useCart();
+    const { location } = useUser();
+    const [sortBy, setSortBy] = useState('bestMatch');
+
+    // Initialize with the ID of the 'Best Match' provider
+    const [selectedProviderId, setSelectedProviderId] = useState(
+        PROVIDERS.find(p => p.isBestMatch)?.id || PROVIDERS[0].id
+    );
+
+    // Generate a consistent random order ID for this session
+    const orderId = React.useMemo(() => Math.floor(1000 + Math.random() * 9000), []);
+
+    const sortedProviders = React.useMemo(() => {
+        let sorted = [...PROVIDERS];
+        if (sortBy === 'lowestPrice') {
+            sorted.sort((a, b) => {
+                const priceA = a.price || a.estimatedCost;
+                const priceB = b.price || b.estimatedCost;
+                return priceA - priceB;
+            });
+        } else if (sortBy === 'highestRated') {
+            sorted.sort((a, b) => {
+                // If rating is null, put it at the end
+                if (a.rating === null) return 1;
+                if (b.rating === null) return -1;
+                return b.rating - a.rating;
+            });
+        }
+        return sorted;
+    }, [sortBy]);
+
+    const renderProviderCard = (provider) => {
+        const isSelected = provider.id === selectedProviderId;
+        const displayPrice = provider.price || provider.estimatedCost;
+
+        return (
+            <Pressable
+                key={provider.id}
+                onPress={() => setSelectedProviderId(provider.id)}
+                style={[
+                    styles.cardContainer,
+                    isSelected ? styles.cardSelected : styles.cardStandard,
+                ]}
+            >
+                {/* Recommended Badge - Display ONLY if this specific provider is the Best Match */}
+                {provider.isBestMatch && (
+                    <View style={styles.bestMatchLabel}>
+                        <Text style={styles.bestMatchLabelText}>خيارنا المفضل لك</Text>
+                    </View>
+                )}
+
+                <View style={styles.cardBody}>
+                    <View style={styles.providerHeader}>
+                        <View style={isSelected ? styles.avatarContainer : styles.avatarContainerSmall}>
+                            <Image source={{ uri: provider.image }} style={styles.avatar} />
+                        </View>
+                        <View style={styles.providerInfo}>
+                            <View style={styles.providerTopRow}>
+                                <View>
+                                    <Text style={isSelected ? styles.providerNameLarge : styles.providerName}>
+                                        {provider.name}
+                                    </Text>
+
+                                    <View style={styles.ratingRowContainer}>
+                                        {provider.rating && (
+                                            <View style={styles.ratingRow}>
+                                                <MaterialIcons name="star" size={14} color={COLORS.primary} />
+                                                <Text style={styles.ratingValue}>{provider.rating}</Text>
+                                                {isSelected && (
+                                                    <Text style={styles.ratingCount}>• {provider.jobs} عملية تأجير</Text>
+                                                )}
+                                            </View>
+                                        )}
+                                        {provider.verified && !isSelected && (
+                                            <View style={styles.verifiedRow}>
+                                                <MaterialIcons name="verified" size={14} color={COLORS.primary} />
+                                                <Text style={styles.verifiedText}>موثوق</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+
+                                {provider.isBestMatch && (
+                                    <View style={isSelected ? styles.fullMatchBadge : styles.checkTag}>
+                                        {isSelected ? (
+                                            <>
+                                                <MaterialIcons name="task-alt" size={20} color={COLORS.green} />
+                                                <Text style={styles.fullMatchText}>يلبي طلبك{'\n'}بالكامل</Text>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <MaterialIcons name="check" size={16} color={COLORS.green} />
+                                                <Text style={styles.checkTagText}>كامل الطلب</Text>
+                                            </>
+                                        )}
+                                    </View>
+                                )}
+                                {!provider.isBestMatch && (
+                                    <View style={styles.checkTag}>
+                                        <MaterialIcons name="check" size={16} color={COLORS.green} />
+                                        <Text style={styles.checkTagText}>كامل الطلب</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    </View>
+
+                    {isSelected && (
+                        <View style={styles.bestMatchDetails}>
+                            <View style={styles.availabilityRow}>
+                                <MaterialIcons name="check-circle" size={18} color={COLORS.green} />
+                                <Text style={styles.availabilityText}>جميع المعدات الـ {provider.totalRequired} متوفرة للتواريخ المحددة</Text>
+                            </View>
+                            <View style={styles.costRow}>
+                                <Text style={styles.costLabel}>السعر الإجمالي (شاملاً التوصيل)</Text>
+                                <Text style={styles.costValue}>{displayPrice.toLocaleString()} <Text style={styles.currency}>ر.س</Text></Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {!isSelected && (
+                        <>
+                            <View style={styles.dashedDivider} />
+                            <View style={styles.cardFooter}>
+                                <View>
+                                    <Text style={styles.costLabelSmall}>إجمالي التكلفة المتوقعة</Text>
+                                    <Text style={styles.costValueSmall}>{displayPrice.toLocaleString()} <Text style={styles.currencySmall}>ر.س</Text></Text>
+                                </View>
+                                <View style={styles.detailsBtn}>
+                                    <Text style={styles.detailsBtnText}>عرض التفاصيل</Text>
+                                </View>
+                            </View>
+                        </>
+                    )}
+
+                    {isSelected && (
+                        <TouchableOpacity
+                            style={styles.selectBtnPrimary}
+                            onPress={() => navigation.navigate('OrderSummary', { provider })}
+                        >
+                            <Text style={styles.selectBtnPrimaryText}>اختر هذا المزود</Text>
+                            <MaterialIcons name="arrow-right-alt" size={20} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </Pressable>
+        );
+    };
+
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -74,22 +226,18 @@ export default function MatchingProvidersScreen({ navigation }) {
                     <View style={styles.summaryCard}>
                         <View style={styles.summaryHeader}>
                             <View style={styles.summaryOrderTag}>
-                                <Text style={styles.summaryOrderText}>طلب مجمع #1209</Text>
+                                <Text style={styles.summaryOrderText}>طلب مجمع #{orderId}</Text>
                             </View>
-                            <Text style={styles.summaryLocation}>الرياض، حي النرجس</Text>
+                            <Text style={styles.summaryLocation}>{location}</Text>
                         </View>
                         <View>
                             <Text style={styles.summaryReqLabel}>ملخص احتياجاتك</Text>
                             <View style={styles.summaryTags}>
-                                <View style={styles.reqTag}>
-                                    <Text style={styles.reqTagText}>حفار (1)</Text>
-                                </View>
-                                <View style={styles.reqTag}>
-                                    <Text style={styles.reqTagText}>جرافة (1)</Text>
-                                </View>
-                                <View style={styles.reqTag}>
-                                    <Text style={styles.reqTagText}>رافعة شوكية (1)</Text>
-                                </View>
+                                {cartItems.map((item, index) => (
+                                    <View key={index} style={styles.reqTag}>
+                                        <Text style={styles.reqTagText}>{item.title} ({item.quantity})</Text>
+                                    </View>
+                                ))}
                             </View>
                         </View>
                     </View>
@@ -98,144 +246,67 @@ export default function MatchingProvidersScreen({ navigation }) {
                 {/* Filters */}
                 <View style={styles.filtersContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContent}>
-                        <TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}>
-                            <Text style={styles.filterChipTextActive}>الأفضل تطابقاً</Text>
+                        <TouchableOpacity
+                            style={[styles.filterChip, sortBy === 'bestMatch' && styles.filterChipActive]}
+                            onPress={() => setSortBy('bestMatch')}
+                        >
+                            <Text style={sortBy === 'bestMatch' ? styles.filterChipTextActive : styles.filterChipText}>الأفضل تطابقاً</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.filterChip}>
-                            <Text style={styles.filterChipText}>أقل سعر</Text>
-                            <MaterialIcons name="keyboard-arrow-down" size={16} color={COLORS.textDark} />
+                        <TouchableOpacity
+                            style={[styles.filterChip, sortBy === 'lowestPrice' && styles.filterChipActive]}
+                            onPress={() => setSortBy('lowestPrice')}
+                        >
+                            <Text style={sortBy === 'lowestPrice' ? styles.filterChipTextActive : styles.filterChipText}>أقل سعر</Text>
+                            <MaterialIcons name="keyboard-arrow-down" size={16} color={sortBy === 'lowestPrice' ? 'white' : COLORS.textDark} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.filterChip}>
-                            <Text style={styles.filterChipText}>الأعلى تقييماً</Text>
-                            <MaterialIcons name="keyboard-arrow-down" size={16} color={COLORS.textDark} />
+                        <TouchableOpacity
+                            style={[styles.filterChip, sortBy === 'highestRated' && styles.filterChipActive]}
+                            onPress={() => setSortBy('highestRated')}
+                        >
+                            <Text style={sortBy === 'highestRated' ? styles.filterChipTextActive : styles.filterChipText}>الأعلى تقييماً</Text>
+                            <MaterialIcons name="keyboard-arrow-down" size={16} color={sortBy === 'highestRated' ? 'white' : COLORS.textDark} />
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
 
                 <View style={styles.listContent}>
-                    {PROVIDERS.map((provider) => (
-                        <View key={provider.id}>
-                            {provider.isBestMatch ? (
-                                <View style={styles.bestMatchCard}>
-                                    <View style={styles.bestMatchLabel}>
-                                        <Text style={styles.bestMatchLabelText}>خيارنا المفضل لك</Text>
-                                    </View>
-                                    <View style={styles.bestMatchBody}>
-                                        <View style={styles.providerHeader}>
-                                            <View style={styles.avatarContainer}>
-                                                <Image source={{ uri: provider.image }} style={styles.avatar} />
-                                            </View>
-                                            <View style={styles.providerInfo}>
-                                                <View style={styles.providerTopRow}>
-                                                    <View>
-                                                        <Text style={styles.providerNameLarge}>{provider.name}</Text>
-                                                        <View style={styles.ratingRow}>
-                                                            <MaterialIcons name="star" size={14} color={COLORS.primary} />
-                                                            <Text style={styles.ratingValue}>{provider.rating}</Text>
-                                                            <Text style={styles.ratingCount}>• {provider.jobs} عملية تأجير</Text>
-                                                        </View>
-                                                    </View>
-                                                    <View style={styles.fullMatchBadge}>
-                                                        <MaterialIcons name="task-alt" size={20} color={COLORS.green} />
-                                                        <Text style={styles.fullMatchText}>يلبي طلبك{'\n'}بالكامل</Text>
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.bestMatchDetails}>
-                                            <View style={styles.availabilityRow}>
-                                                <MaterialIcons name="check-circle" size={18} color={COLORS.green} />
-                                                <Text style={styles.availabilityText}>جميع المعدات الـ 3 متوفرة للتواريخ المحددة</Text>
-                                            </View>
-                                            <View style={styles.costRow}>
-                                                <Text style={styles.costLabel}>السعر الإجمالي (شاملاً التوصيل)</Text>
-                                                <Text style={styles.costValue}>{provider.price.toLocaleString()} <Text style={styles.currency}>ر.س</Text></Text>
-                                            </View>
-                                        </View>
-
-                                        <TouchableOpacity
-                                            style={styles.selectBtnPrimary}
-                                            onPress={() => navigation.navigate('OrderSummary')}
-                                        >
-                                            <Text style={styles.selectBtnPrimaryText}>اختر هذا المزود</Text>
-                                            <MaterialIcons name="arrow-right-alt" size={20} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            ) : (
-                                <View style={styles.standardCard}>
-                                    <View style={styles.cardBody}>
-                                        <View style={styles.providerHeader}>
-                                            <View style={styles.avatarContainerSmall}>
-                                                <Image source={{ uri: provider.image }} style={styles.avatar} />
-                                            </View>
-                                            <View style={styles.providerInfo}>
-                                                <View style={styles.providerTopRow}>
-                                                    <View>
-                                                        <Text style={styles.providerName}>{provider.name}</Text>
-                                                        {provider.verified && (
-                                                            <View style={styles.verifiedRow}>
-                                                                <MaterialIcons name="verified" size={14} color="#a16207" />
-                                                                <Text style={styles.verifiedText}>موثوق</Text>
-                                                            </View>
-                                                        )}
-                                                        {provider.rating && (
-                                                            <View style={styles.ratingRow}>
-                                                                <MaterialIcons name="star" size={14} color={COLORS.primary} />
-                                                                <Text style={styles.ratingValue}>{provider.rating}</Text>
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                    <View style={styles.checkTag}>
-                                                        <MaterialIcons name="check" size={16} color={COLORS.green} />
-                                                        <Text style={styles.checkTagText}>كامل الطلب</Text>
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        </View>
-                                        <View style={styles.dashedDivider} />
-                                        <View style={styles.cardFooter}>
-                                            <View>
-                                                <Text style={styles.costLabelSmall}>إجمالي التكلفة المتوقعة</Text>
-                                                <Text style={styles.costValueSmall}>{provider.estimatedCost?.toLocaleString() || provider.price?.toLocaleString()} <Text style={styles.currencySmall}>ر.س</Text></Text>
-                                            </View>
-                                            <TouchableOpacity style={styles.detailsBtn}>
-                                                <Text style={styles.detailsBtnText}>عرض التفاصيل</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </View>
-                            )}
-                        </View>
-                    ))}
+                    {sortedProviders.map((provider) => renderProviderCard(provider))}
                 </View>
             </ScrollView>
 
             {/* Bottom Nav */}
-            <View style={styles.bottomNav}>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="home" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navText}>الرئيسية</Text>
+            <SafeAreaView edges={['bottom']} style={styles.bottomNav}>
+                <View style={styles.bottomNavContent}>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserHome')}
+                    >
+                        <MaterialIcons name="home" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الرئيسية</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserOrders')}
+                    >
+                        <MaterialIcons name="receipt-long" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>طلباتي</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserSupport')}
+                    >
+                        <MaterialIcons name="support-agent" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>الدعم</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('UserAccount')}
+                    >
+                        <MaterialIcons name="person" size={26} color={COLORS.textGray} />
+                        <Text style={styles.navLabel}>حسابي</Text>
+                    </TouchableOpacity>
                 </View>
-                <View style={styles.navItem}>
-                    <View style={styles.navIconBadge}>
-                        <MaterialIcons name="receipt-long" size={24} color={COLORS.primary} />
-                        <View style={styles.navBadge}>
-                            <Text style={styles.navBadgeText}>1</Text>
-                        </View>
-                    </View>
-                    <Text style={[styles.navText, { color: COLORS.textDark, fontWeight: 'bold' }]}>طلباتي</Text>
-                </View>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="search" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navText}>بحث</Text>
-                </View>
-                <View style={styles.navItem}>
-                    <MaterialIcons name="person" size={24} color={COLORS.textGray} />
-                    <Text style={styles.navText}>حسابي</Text>
-                </View>
-            </View>
+            </SafeAreaView>
         </View>
     );
 }
@@ -370,17 +441,29 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
         gap: 20,
     },
-    bestMatchCard: {
+    // New Card Styles
+    cardContainer: {
         backgroundColor: COLORS.surfaceLight,
         borderRadius: 16,
-        borderWidth: 2,
-        borderColor: 'rgba(236, 200, 19, 0.4)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 4,
         overflow: 'hidden',
+        // Common Shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    cardSelected: {
+        borderWidth: 2,
+        borderColor: 'rgba(230, 194, 23, 0.8)', // Primary color, slightly transparent or solid
+    },
+    cardStandard: {
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
+    },
+    cardBody: {
+        padding: 16,
+        gap: 16,
     },
     bestMatchLabel: {
         backgroundColor: COLORS.primary,
@@ -391,10 +474,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
         color: COLORS.textDark,
-    },
-    bestMatchBody: {
-        padding: 16,
-        gap: 16,
     },
     providerHeader: {
         flexDirection: 'row',
@@ -449,6 +528,9 @@ const styles = StyleSheet.create({
         color: COLORS.textDark,
         marginBottom: 4,
     },
+    ratingRowContainer: {
+        gap: 2,
+    },
     ratingRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -462,6 +544,17 @@ const styles = StyleSheet.create({
     ratingCount: {
         fontSize: 12,
         color: '#6b7280',
+    },
+    verifiedRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+    },
+    verifiedText: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: COLORS.primary,
     },
     fullMatchBadge: {
         backgroundColor: '#f0fdf4', // green-50
@@ -479,6 +572,20 @@ const styles = StyleSheet.create({
         color: '#15803d',
         textAlign: 'center',
         marginTop: 2,
+    },
+    checkTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: '#f0fdf4',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    checkTagText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#15803d',
     },
     bestMatchDetails: {
         backgroundColor: '#fafaf9',
@@ -528,57 +635,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
+        marginTop: 4,
     },
     selectBtnPrimaryText: {
         fontSize: 16,
         fontWeight: 'bold',
         color: COLORS.textDark,
     },
-    standardCard: {
-        backgroundColor: COLORS.surfaceLight,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#f3f4f6',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
-    },
-    cardBody: {
-        padding: 16,
-    },
-    verifiedRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        marginBottom: 2,
-    },
-    verifiedText: {
-        fontSize: 12,
-        fontWeight: '500',
-        color: '#a16207',
-    },
-    checkTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: '#f0fdf4',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-    },
-    checkTagText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#15803d',
-    },
     dashedDivider: {
         height: 1,
         borderWidth: 1,
-        borderColor: '#e5e7eb', // This needs solid for borderBottomWidth, 'dashed' requires style
+        borderColor: '#e5e7eb',
         borderStyle: 'dashed',
-        marginVertical: 16,
     },
     cardFooter: {
         flexDirection: 'row',
@@ -617,43 +685,24 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         backgroundColor: COLORS.surfaceLight,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
+    },
+    bottomNavContent: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#e6e4db',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 10,
+        height: 64,
+        alignItems: 'center',
     },
     navItem: {
         alignItems: 'center',
-        gap: 4,
-    },
-    navText: {
-        fontSize: 10,
-        fontWeight: '500',
-        color: COLORS.textGray,
-    },
-    navIconBadge: {
-        position: 'relative',
-    },
-    navBadge: {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#ef4444',
-        alignItems: 'center',
         justifyContent: 'center',
+        gap: 4,
+        minWidth: 64,
     },
-    navBadgeText: {
+    navLabel: {
         fontSize: 10,
-        fontWeight: 'bold',
-        color: 'white',
+        color: COLORS.textGray,
+        fontWeight: '500',
     },
 });

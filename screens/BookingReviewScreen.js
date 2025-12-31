@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useCart } from '../context/CartContext';
 
 const COLORS = {
-    primary: '#f4d125',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f5',
     surfaceLight: '#ffffff',
     textDark: '#1c190d',
@@ -13,6 +14,17 @@ const COLORS = {
 };
 
 export default function BookingReviewScreen({ navigation }) {
+    const { addOrder } = useCart();
+
+    const handleConfirm = async () => {
+        // In a real app, calculate total from cartItems
+        const orderId = addOrder({
+            totalPrice: 14375, // Static for now matching UI
+        });
+
+        navigation.navigate('BookingConfirmation', { orderId });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -67,7 +79,7 @@ export default function BookingReviewScreen({ navigation }) {
                         {/* Date */}
                         <View style={styles.infoRow}>
                             <View style={styles.iconBox}>
-                                <MaterialIcons name="calendar-today" size={20} color="#b45309" />
+                                <MaterialIcons name="calendar-today" size={20} color="#E6C217" />
                             </View>
                             <View style={styles.infoContent}>
                                 <Text style={styles.infoLabel}>فترة الإيجار (3 أيام)</Text>
@@ -84,7 +96,7 @@ export default function BookingReviewScreen({ navigation }) {
                         {/* Location */}
                         <View style={styles.infoRow}>
                             <View style={styles.iconBox}>
-                                <MaterialIcons name="location-on" size={20} color="#b45309" />
+                                <MaterialIcons name="location-on" size={20} color="#E6C217" />
                             </View>
                             <View style={[styles.infoContent, { flex: 1 }]}>
                                 <Text style={styles.infoLabel}>موقع التسليم</Text>
@@ -116,7 +128,7 @@ export default function BookingReviewScreen({ navigation }) {
                         </View>
                         <View style={[styles.costItem, { marginBottom: 16 }]}>
                             <Text style={styles.costLabel}>ضريبة القيمة المضافة (15%)</Text>
-                            <Text style={[styles.costValue, { color: '#b45309' }]}>1,875 ر.س</Text>
+                            <Text style={[styles.costValue, { color: '#E6C217' }]}>1,875 ر.س</Text>
                         </View>
 
                         <View style={styles.totalDivider} />
@@ -146,7 +158,7 @@ export default function BookingReviewScreen({ navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.confirmButton}
-                    onPress={() => navigation.navigate('BookingConfirmation')}
+                    onPress={handleConfirm}
                 >
                     <Text style={styles.confirmButtonText}>تأكيد الحجز</Text>
                     <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
@@ -220,7 +232,7 @@ const styles = StyleSheet.create({
         color: COLORS.textGray,
     },
     stepLabelActive: {
-        color: '#b45309', // Darker primary for text
+        color: '#947d03', // Darker primary for text
         fontWeight: 'bold',
     },
     scrollView: {
@@ -256,7 +268,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     tag: {
-        backgroundColor: 'rgba(244, 209, 37, 0.2)',
+        backgroundColor: 'rgba(230, 194, 23, 0.2)',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
@@ -265,7 +277,7 @@ const styles = StyleSheet.create({
     tagText: {
         fontSize: 10,
         fontWeight: '500',
-        color: '#b45309',
+        color: '#947d03',
     },
     machineName: {
         fontSize: 16,
@@ -302,7 +314,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 8,
-        backgroundColor: 'rgba(244, 209, 37, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
     },

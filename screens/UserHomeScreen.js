@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 
 const COLORS = {
-    primary: '#FFC107',
+    primary: '#E6C217',
     backgroundLight: '#f6f7f8',
     surfaceLight: '#ffffff',
     textDark: '#0f172a',
@@ -27,20 +29,16 @@ const FEATURED_ITEMS = [
     }
 ];
 
-const LOCATIONS = [
-    'الرياض، المملكة العربية السعودية',
-    'جدة، المملكة العربية السعودية',
-    'الدمام، المملكة العربية السعودية',
-    'مكة المكرمة، المملكة العربية السعودية',
-    'المدينة المنورة، المملكة العربية السعودية',
-];
-
 export default function UserHomeScreen({ navigation }) {
+    const { location, setLocation, LOCATIONS } = useUser();
     const [isLocationOpen, setIsLocationOpen] = useState(false);
-    const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
 
     const handleLocationSelect = (loc) => {
-        setSelectedLocation(loc);
+        if (setLocation) {
+            setLocation(loc); // Update global state
+        } else {
+            console.warn("setLocation function is missing");
+        }
         setIsLocationOpen(false);
     };
 
@@ -58,11 +56,11 @@ export default function UserHomeScreen({ navigation }) {
                         >
                             <View style={styles.locationRow}>
                                 <View style={styles.locationIconBg}>
-                                    <MaterialIcons name="location-on" size={24} color="#a16207" />
+                                    <MaterialIcons name="location-on" size={24} color={COLORS.primary} />
                                 </View>
                                 <View style={styles.locationInfo}>
                                     <Text style={styles.locationLabel}>الموقع الحالي</Text>
-                                    <Text style={styles.locationValue}>{selectedLocation}</Text>
+                                    <Text style={styles.locationValue}>{location}</Text>
                                 </View>
                             </View>
                             <MaterialIcons
@@ -85,11 +83,11 @@ export default function UserHomeScreen({ navigation }) {
                                     >
                                         <Text style={[
                                             styles.dropdownText,
-                                            selectedLocation === loc && styles.selectedDropdownText
+                                            loc === location && styles.selectedDropdownText
                                         ]}>
                                             {loc}
                                         </Text>
-                                        {selectedLocation === loc && (
+                                        {location === loc && (
                                             <MaterialIcons name="check" size={20} color={COLORS.primary} />
                                         )}
                                     </TouchableOpacity>
@@ -122,7 +120,7 @@ export default function UserHomeScreen({ navigation }) {
                 <View style={styles.categoriesSection}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>ماذا تريد أن تستأجر اليوم؟</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate('AddMachinery')}>
                             <Text style={styles.seeAll}>عرض الكل</Text>
                         </TouchableOpacity>
                     </View>
@@ -139,7 +137,7 @@ export default function UserHomeScreen({ navigation }) {
                             />
                             <View style={styles.largeCardContent}>
                                 <View style={styles.categoryIcon}>
-                                    <MaterialIcons name="construction" size={24} color="#a16207" />
+                                    <MaterialIcons name="construction" size={24} color={COLORS.primary} />
                                 </View>
                                 <Text style={styles.categoryTitle}>معدات ثقيلة</Text>
                                 <Text style={styles.categorySubtitle}>حفارات، بلدوزرات، رافعات</Text>
@@ -173,7 +171,7 @@ export default function UserHomeScreen({ navigation }) {
                         </View>
 
                         {/* Generators - Wide Card */}
-                        <TouchableOpacity style={styles.wideCard} onPress={() => navigation.navigate('AddMachinery', { initialFilter: 'generators' })}>
+                        <TouchableOpacity style={styles.wideCard} onPress={() => navigation.navigate('AddMachinery')}>
                             <Image
                                 source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvZdIKE6bz7hinP5xu0KHyIjnAzYZLLvFL9wu_OO5aUqDjFvCKBVoWMcuKr4sNn88OLTvoFpOtGOwjK9xhch15HNqJIwgb5qOtZd75e19VOasFS-iQgrYBWviWIqDhgTsfxDso0QnyQXDnh3UFJ21piD_z16tSPN4OLcEsOkGu6Z31K53yqiSiPfyr7CHYBhkDGKgLAXbDsm4je8Ta93qByR5pmZaoeRs8JNbCxoVswVsYaFTGg_aiR12E8AIKCznWNjhHOy6T7A_1' }}
                                 style={styles.wideCardImage}
@@ -196,8 +194,8 @@ export default function UserHomeScreen({ navigation }) {
             <SafeAreaView edges={['bottom']} style={styles.bottomNav}>
                 <View style={styles.bottomNavContent}>
                     <TouchableOpacity style={styles.navItem}>
-                        <MaterialIcons name="home" size={26} color="#a16207" />
-                        <Text style={[styles.navLabel, { color: '#a16207' }]}>الرئيسية</Text>
+                        <MaterialIcons name="home" size={26} color={COLORS.primary} />
+                        <Text style={[styles.navLabel, { color: COLORS.primary }]}>الرئيسية</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.navItem}
@@ -337,7 +335,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: 'rgba(255, 193, 7, 0.2)',
+        backgroundColor: 'rgba(230, 194, 23, 0.2)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -421,7 +419,7 @@ const styles = StyleSheet.create({
     seeAll: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#ca8a04',
+        color: COLORS.primary,
     },
     grid: {
         gap: 16,
@@ -461,7 +459,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 8,
-        backgroundColor: 'rgba(255, 193, 7, 0.2)',
+        backgroundColor: 'rgba(230, 194, 23, 0.2)',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 8,

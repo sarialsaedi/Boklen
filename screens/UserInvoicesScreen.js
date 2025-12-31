@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#181711',
@@ -19,7 +19,7 @@ const COLORS = {
 };
 
 // Mock Data
-const INVOICES = [
+const INITIAL_INVOICES = [
     {
         id: '1',
         month: 'أكتوبر 2023',
@@ -66,8 +66,30 @@ const INVOICES = [
     }
 ];
 
-export default function UserInvoicesScreen({ navigation }) {
+export default function UserInvoicesScreen({ navigation, route }) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [invoices, setInvoices] = useState(INITIAL_INVOICES);
+
+    // Effect to handle linking from Orders
+    React.useEffect(() => {
+        if (route.params?.highlightOrderId) {
+            // Set search query to the Order ID to filter immediately
+            setSearchQuery(route.params.highlightOrderId);
+        }
+    }, [route.params]);
+
+    const handlePaymentSuccess = (invoiceId) => {
+        setInvoices(currentInvoices =>
+            currentInvoices.map(group => ({
+                ...group,
+                items: group.items.map(item =>
+                    item.id === invoiceId
+                        ? { ...item, status: 'paid' }
+                        : item
+                )
+            }))
+        );
+    };
 
     const renderStatusBadge = (status) => {
         switch (status) {
@@ -120,7 +142,7 @@ export default function UserInvoicesScreen({ navigation }) {
             </SafeAreaView>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {INVOICES.map((group) => {
+                {invoices.map((group) => {
                     const filteredItems = group.items.filter(item =>
                         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         item.orderNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -172,18 +194,29 @@ export default function UserInvoicesScreen({ navigation }) {
 
                                     <View style={styles.cardActions}>
                                         {item.status === 'pending' ? (
-                                            <TouchableOpacity style={[styles.actionButton, styles.payButton]}>
+                                            <TouchableOpacity
+                                                style={[styles.actionButton, styles.payButton]}
+                                                onPress={() => navigation.navigate('InvoiceDetails', {
+                                                    invoice: item,
+                                                    status: item.status,
+                                                    mode: 'payment',
+                                                    onPaymentSuccess: () => handlePaymentSuccess(item.id)
+                                                })}
+                                            >
                                                 <MaterialIcons name="payments" size={18} color="#000" />
                                                 <Text style={styles.payButtonText}>ادفع الآن</Text>
                                             </TouchableOpacity>
                                         ) : (
-                                            <TouchableOpacity style={styles.actionButton}>
+                                            <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, status: item.status })}>
                                                 <MaterialIcons name="visibility" size={18} color={COLORS.textDark} />
                                                 <Text style={styles.actionButtonText}>عرض</Text>
                                             </TouchableOpacity>
                                         )}
 
-                                        <TouchableOpacity style={[styles.actionButton, { flex: 0, width: 40, borderLeftWidth: 1, borderColor: '#f1f5f9' }]}>
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, { flex: 0, width: 40, borderLeftWidth: 1, borderColor: '#f1f5f9' }]}
+                                            onPress={() => navigation.navigate('InvoiceDetails', { invoice: item, status: item.status, autoDownload: true })}
+                                        >
                                             <MaterialIcons name="download" size={18} color={COLORS.primary} />
                                         </TouchableOpacity>
                                     </View>
@@ -300,7 +333,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: '#fefce8', // primary/10 roughly
+        backgroundColor: 'rgba(230, 194, 23, 0.1)', // primary/10 roughly
         alignItems: 'center',
         justifyContent: 'center',
     },

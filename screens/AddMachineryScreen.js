@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useCart } from '../context/CartContext';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f3f4f6', // Slightly darker background for contrast
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
@@ -18,6 +19,7 @@ const CATEGORIES = [
     { id: 'loaders', label: 'شيولات' },
     { id: 'tankers', label: 'صهاريج' },
     { id: 'others', label: 'معدات أخرى' },
+    { id: 'generators', label: 'مولدات كهرباء' },
 ];
 
 const MACHINERY_DATA = [
@@ -53,7 +55,7 @@ const MACHINERY_DATA = [
         title: 'شيول بوبكات (Bobcat)',
         subtitle: 'متعدد الأغراض - حجم صغير',
         tag: 'سائق مشمول',
-        image: 'https://s7g10.scene7.com/is/image/caterpillar/CM20200806-65814-15967',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bobcat_S175.jpg/1200px-Bobcat_S175.jpg',
         quantity: 0,
         category: 'loaders'
     },
@@ -73,11 +75,42 @@ const MACHINERY_DATA = [
         quantity: 0,
         category: 'others'
     },
+    {
+        id: 7,
+        title: 'مولد كهرباء 50 KVA',
+        subtitle: 'طاقة مستمرة للمواقع المتوسطة',
+        tag: 'سعر اليوم: 300 ريال',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvZdIKE6bz7hinP5xu0KHyIjnAzYZLLvFL9wu_OO5aUqDjFvCKBVoWMcuKr4sNn88OLTvoFpOtGOwjK9xhch15HNqJIwgb5qOtZd75e19VOasFS-iQgrYBWviWIqDhgTsfxDso0QnyQXDnh3UFJ21piD_z16tSPN4OLcEsOkGu6Z31K53yqiSiPfyr7CHYBhkDGKgLAXbDsm4je8Ta93qByR5pmZaoeRs8JNbCxoVswVsYaFTGg_aiR12E8AIKCznWNjhHOy6T7A_1',
+        quantity: 0,
+        price: 300,
+        category: 'generators'
+    },
+    {
+        id: 8,
+        title: 'مولد كهرباء 100 KVA',
+        subtitle: 'مناسب للمشاريع الكبيرة والفعاليات',
+        tag: 'سعر اليوم: 600 ريال',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvZdIKE6bz7hinP5xu0KHyIjnAzYZLLvFL9wu_OO5aUqDjFvCKBVoWMcuKr4sNn88OLTvoFpOtGOwjK9xhch15HNqJIwgb5qOtZd75e19VOasFS-iQgrYBWviWIqDhgTsfxDso0QnyQXDnh3UFJ21piD_z16tSPN4OLcEsOkGu6Z31K53yqiSiPfyr7CHYBhkDGKgLAXbDsm4je8Ta93qByR5pmZaoeRs8JNbCxoVswVsYaFTGg_aiR12E8AIKCznWNjhHOy6T7A_1',
+        quantity: 0,
+        price: 600,
+        category: 'generators'
+    },
+    {
+        id: 9,
+        title: 'مولد كهرباء 250 KVA',
+        subtitle: 'طاقة عالية للمواقع الصناعية',
+        tag: 'سعر اليوم: 1200 ريال',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvZdIKE6bz7hinP5xu0KHyIjnAzYZLLvFL9wu_OO5aUqDjFvCKBVoWMcuKr4sNn88OLTvoFpOtGOwjK9xhch15HNqJIwgb5qOtZd75e19VOasFS-iQgrYBWviWIqDhgTsfxDso0QnyQXDnh3UFJ21piD_z16tSPN4OLcEsOkGu6Z31K53yqiSiPfyr7CHYBhkDGKgLAXbDsm4je8Ta93qByR5pmZaoeRs8JNbCxoVswVsYaFTGg_aiR12E8AIKCznWNjhHOy6T7A_1',
+        quantity: 0,
+        price: 1200,
+        category: 'generators'
+    },
 ];
 
 export default function AddMachineryScreen({ navigation }) {
     const [selectedCategory, setSelectedCategory] = useState('all');
-    const cartCount = 2; // Hardcoded for demo state matching reference
+    const { cartItems } = useCart();
+    const cartCount = cartItems.length;
 
     const getCategoriesToDisplay = () => {
         if (selectedCategory === 'all') {
@@ -102,7 +135,10 @@ export default function AddMachineryScreen({ navigation }) {
                         <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>إضافة معدات للطلب</Text>
-                    <TouchableOpacity style={styles.iconButton}>
+                    <TouchableOpacity
+                        style={styles.iconButton}
+                        onPress={() => navigation.navigate('ReviewRequest')}
+                    >
                         <MaterialIcons name="shopping-cart" size={24} color={COLORS.textDark} />
                         {cartCount > 0 && (
                             <View style={styles.cartBadge}>
@@ -191,23 +227,25 @@ export default function AddMachineryScreen({ navigation }) {
             </ScrollView>
 
             {/* Floating Review Button */}
-            <View style={styles.floatingContainer}>
-                <TouchableOpacity
-                    style={styles.reviewButton}
-                    onPress={() => navigation.navigate('ReviewRequest')}
-                >
-                    <View style={styles.reviewBtnLeft}>
-                        <MaterialIcons name="arrow-back" size={20} color={COLORS.textDark} />
-                        <Text style={styles.reviewText}>التالي</Text>
-                    </View>
-                    <View style={styles.reviewBtnRight}>
-                        <Text style={styles.reviewTitle}>مراجعة الطلب</Text>
-                        <View style={styles.countBadge}>
-                            <Text style={styles.countText}>{cartCount}</Text>
+            {cartCount > 0 && (
+                <View style={styles.floatingContainer}>
+                    <TouchableOpacity
+                        style={styles.reviewButton}
+                        onPress={() => navigation.navigate('ReviewRequest')}
+                    >
+                        <View style={styles.reviewBtnLeft}>
+                            <MaterialIcons name="arrow-back" size={20} color={COLORS.textDark} />
+                            <Text style={styles.reviewText}>التالي</Text>
                         </View>
-                    </View>
-                </TouchableOpacity>
-            </View>
+                        <View style={styles.reviewBtnRight}>
+                            <Text style={styles.reviewTitle}>مراجعة الطلب</Text>
+                            <View style={styles.countBadge}>
+                                <Text style={styles.countText}>{cartCount}</Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }
@@ -408,7 +446,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        shadowColor: '#ecc813',
+        shadowColor: '#E6C217',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
         shadowRadius: 10,

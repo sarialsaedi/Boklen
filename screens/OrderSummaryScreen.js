@@ -1,10 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, Modal } from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ecc813',
+    primary: '#E6C217',
     backgroundLight: '#f8f8f6',
     surfaceLight: '#ffffff',
     textDark: '#1b190d',
@@ -13,7 +16,50 @@ const COLORS = {
     green: '#15803d',
 };
 
-export default function OrderSummaryScreen({ navigation }) {
+export default function OrderSummaryScreen({ navigation, route }) {
+    const { cartItems, updateCartItem, addOrder } = useCart();
+    const { provider } = route.params || {};
+    const { location } = useUser();
+
+    // Assume we are editing the date for the first item for now, or a global start date
+    // logic depends on if all items must share a start date. For this task, we bind to the first item if available.
+    const mainItem = cartItems.length > 0 ? cartItems[0] : null;
+
+    const [isCalendarVisible, setCalendarVisible] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(mainItem ? mainItem.startDate : null);
+
+    const handleDateChange = (day) => {
+        setSelectedDate(day.dateString);
+    };
+
+    const confirmDateChange = () => {
+        if (mainItem && selectedDate) {
+            updateCartItem(mainItem.cartId, { startDate: selectedDate });
+        }
+        setCalendarVisible(false);
+    };
+
+    const openCalendar = () => {
+        if (mainItem) {
+            setSelectedDate(mainItem.startDate);
+            setCalendarVisible(true);
+        }
+    };
+
+    const handleConfirm = () => {
+        const finalPrice = provider ? (provider.price || provider.estimatedCost) : 15000;
+
+        const orderId = addOrder({
+            provider: provider ? provider.name : 'Unknown Provider',
+            items: cartItems,
+            status: 'Under Processing',
+            totalPrice: finalPrice,
+            // providerDetails: provider // Optional: store full provider object if needed
+        });
+
+        navigation.navigate('BookingConfirmation', { orderId });
+    };
+
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -63,19 +109,26 @@ export default function OrderSummaryScreen({ navigation }) {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>مقدم الخدمة</Text>
                     <View style={styles.providerCard}>
-                        <Image
-                            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCOECXiVkmj_sQK8Yu3L5LHrGXXmbTAn9jwqu3xewUJkAFlV6CX4EwPhOCZFiZg7TBb2Y-4ze1fxNjuATZNHzyIY5CImy-6hXVvnt17Owu4Re_K3MXLNlFVZd99IcCQdhLHH4RW0JtOhK40Tj_VB30b8rCxb9H363OBqM826m5sK88ZEJh0ZX_sloVMsR2BSYMWcA7EI5veYDK7jAg-Y3Ns0g4MSRuqjwJwDxaeA9rIEVNtufcPW4UX2exMizB-ghqUOiq-jlwkHP4' }}
-                            style={styles.providerLogo}
-                        />
+                        {provider?.image ? (
+                            <Image
+                                source={{ uri: provider.image }}
+                                style={styles.providerLogo}
+                            />
+                        ) : (
+                            <View style={[styles.providerLogo, { backgroundColor: '#eee', alignItems: 'center', justifyContent: 'center' }]}>
+                                <MaterialIcons name="business" size={24} color={COLORS.textGray} />
+                            </View>
+                        )}
+
                         <View style={styles.providerDetails}>
                             <View style={styles.providerNameRow}>
-                                <Text style={styles.providerName}>شركة البنيان للمقاولات</Text>
-                                <MaterialIcons name="verified" size={16} color="#3b82f6" />
+                                <Text style={styles.providerName}>{provider?.name || 'مقدم خدمة'}</Text>
+                                {provider?.verified && <MaterialIcons name="verified" size={16} color="#3b82f6" />}
                             </View>
                             <View style={styles.ratingRow}>
                                 <MaterialIcons name="star" size={14} color={COLORS.primary} />
-                                <Text style={styles.ratingValue}>4.8</Text>
-                                <Text style={styles.ratingCount}>(١٥٢ تقييم)</Text>
+                                <Text style={styles.ratingValue}>{provider?.rating || '-'}</Text>
+                                <Text style={styles.ratingCount}>({provider?.jobs || 0} عملية)</Text>
                             </View>
                         </View>
                         <TouchableOpacity style={styles.chatButton}>
@@ -92,14 +145,16 @@ export default function OrderSummaryScreen({ navigation }) {
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
                                 <View style={styles.detailIcon}>
-                                    <MaterialIcons name="payments" size={20} color="#a16207" />
+                                    <MaterialIcons name="payments" size={20} color={COLORS.primary} />
                                 </View>
                                 <View>
                                     <Text style={styles.detailLabel}>السعر اليومي</Text>
                                     <Text style={styles.detailSub}>شامل الضريبة</Text>
                                 </View>
                             </View>
-                            <Text style={styles.detailValue}>٥٠٠ ر.س</Text>
+                            <Text style={styles.detailValue}>
+                                {provider ? (provider.price || provider.estimatedCost || 0).toLocaleString() : '---'} ر.س
+                            </Text>
                         </View>
 
                         <View style={styles.divider} />
@@ -108,11 +163,11 @@ export default function OrderSummaryScreen({ navigation }) {
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
                                 <View style={styles.detailIcon}>
-                                    <MaterialIcons name="location-on" size={20} color="#a16207" />
+                                    <MaterialIcons name="location-on" size={20} color={COLORS.primary} />
                                 </View>
                                 <View>
                                     <Text style={styles.detailLabel}>موقع العمل</Text>
-                                    <Text style={styles.detailSub}>الرياض، المملكة العربية السعودية</Text>
+                                    <Text style={styles.detailSub}>{location || 'يرجى تحديد الموقع'}</Text>
                                 </View>
                             </View>
                             <Image
@@ -127,18 +182,59 @@ export default function OrderSummaryScreen({ navigation }) {
                         <View style={styles.detailRow}>
                             <View style={styles.detailLeft}>
                                 <View style={styles.detailIcon}>
-                                    <MaterialIcons name="calendar-today" size={20} color="#a16207" />
+                                    <MaterialIcons name="calendar-today" size={20} color={COLORS.primary} />
                                 </View>
                                 <View>
                                     <Text style={styles.detailLabel}>تاريخ البدء</Text>
-                                    <Text style={styles.detailSub}>يتم تأكيده لاحقاً</Text>
+                                    <Text style={styles.detailSub}>
+                                        {mainItem?.startDate ? mainItem.startDate : 'يتم تأكيده لاحقاً'}
+                                    </Text>
                                 </View>
                             </View>
-                            <MaterialIcons name="edit" size={20} color={COLORS.textGray} />
+                            <TouchableOpacity onPress={openCalendar}>
+                                <MaterialIcons name="edit" size={20} color={COLORS.primary} />
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
 
+                {/* Calendar Modal */}
+                <Modal
+                    visible={isCalendarVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setCalendarVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>تغيير تاريخ البدء</Text>
+                                <TouchableOpacity onPress={() => setCalendarVisible(false)}>
+                                    <MaterialIcons name="close" size={24} color={COLORS.textDark} />
+                                </TouchableOpacity>
+                            </View>
+                            <Calendar
+                                current={selectedDate}
+                                onDayPress={handleDateChange}
+                                markedDates={{
+                                    [selectedDate]: { selected: true, selectedColor: COLORS.primary }
+                                }}
+                                theme={{
+                                    selectedDayBackgroundColor: COLORS.primary,
+                                    selectedDayTextColor: 'black',
+                                    todayTextColor: COLORS.primary,
+                                    arrowColor: COLORS.primary,
+                                }}
+                            />
+                            <TouchableOpacity
+                                style={styles.modalBtn}
+                                onPress={confirmDateChange}
+                            >
+                                <Text style={styles.modalBtnText}>تأكيد التاريخ</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </ScrollView>
 
             {/* Bottom Action */}
@@ -147,7 +243,7 @@ export default function OrderSummaryScreen({ navigation }) {
                 <View style={styles.bottomContent}>
                     <TouchableOpacity
                         style={styles.confirmButton}
-                        onPress={() => navigation.navigate('BookingConfirmation')}
+                        onPress={handleConfirm}
                     >
                         <Text style={styles.confirmButtonText}>تأكيد ومتابعة الحجز</Text>
                         <MaterialIcons name="arrow-right-alt" size={24} color={COLORS.textDark} style={{ transform: [{ rotate: '180deg' }] }} />
@@ -181,6 +277,43 @@ export default function OrderSummaryScreen({ navigation }) {
                 </View>
             </View>
 
+            {/* Calendar Modal */}
+            <Modal
+                visible={isCalendarVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setCalendarVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>تغيير تاريخ البدء</Text>
+                            <TouchableOpacity onPress={() => setCalendarVisible(false)}>
+                                <MaterialIcons name="close" size={24} color={COLORS.textDark} />
+                            </TouchableOpacity>
+                        </View>
+                        <Calendar
+                            current={selectedDate}
+                            onDayPress={handleDateChange}
+                            markedDates={{
+                                [selectedDate]: { selected: true, selectedColor: COLORS.primary }
+                            }}
+                            theme={{
+                                selectedDayBackgroundColor: COLORS.primary,
+                                selectedDayTextColor: 'black',
+                                todayTextColor: COLORS.primary,
+                                arrowColor: COLORS.primary,
+                            }}
+                        />
+                        <TouchableOpacity
+                            style={styles.modalBtn}
+                            onPress={confirmDateChange}
+                        >
+                            <Text style={styles.modalBtnText}>تأكيد التاريخ</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -298,7 +431,7 @@ const styles = StyleSheet.create({
         color: COLORS.textGray,
     },
     categoryTag: {
-        backgroundColor: 'rgba(236, 200, 19, 0.1)',
+        backgroundColor: 'rgba(230, 194, 23, 0.1)',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 8,
@@ -306,7 +439,7 @@ const styles = StyleSheet.create({
     categoryTagText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#a16207',
+        color: COLORS.primary,
     },
     providerCard: {
         flexDirection: 'row',
@@ -328,7 +461,7 @@ const styles = StyleSheet.create({
         height: 56,
         borderRadius: 28,
         borderWidth: 2,
-        borderColor: 'rgba(236, 200, 19, 0.2)',
+        borderColor: 'rgba(230, 194, 23, 0.2)',
     },
     providerDetails: {
         flex: 1,
@@ -386,7 +519,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(236, 200, 19, 0.15)',
+        backgroundColor: 'rgba(230, 194, 23, 0.15)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -483,5 +616,39 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 3,
         // Styling trick to match design indicator
         display: 'none', // Hiding for now to simulate simpler active state
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 16,
+        minHeight: 400,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textDark,
+    },
+    modalBtn: {
+        backgroundColor: COLORS.primary,
+        borderRadius: 8,
+        padding: 12,
+        alignItems: 'center',
+        marginTop: 16,
+    },
+    modalBtnText: {
+        fontWeight: 'bold',
+        color: COLORS.textDark,
     },
 });
