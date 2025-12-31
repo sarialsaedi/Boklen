@@ -5,11 +5,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#ca8a04',
-    backgroundLight: '#f6f7f8',
-    surfaceLight: '#ffffff',
-    textDark: '#0f172a',
-    textGray: '#64748b',
+    primary: '#EBC024', // Mustard Yellow
+    backgroundLight: '#FAFAFA', // Light Off-White
+    surfaceLight: '#FFFFFF', // Pure White
+    textDark: '#212121', // Dark Charcoal
+    textGray: '#757575', // Medium Gray
     border: '#e2e8f0',
 };
 
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         width: 96,
         height: 96,
         borderRadius: 48,
-        backgroundColor: 'rgba(202, 138, 4, 0.1)',
+        backgroundColor: 'rgba(235, 192, 36, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         borderRadius: 48,
         borderWidth: 3,
-        borderColor: 'rgba(202, 138, 4, 0.2)',
+        borderColor: 'rgba(235, 192, 36, 0.2)',
         borderTopColor: COLORS.primary,
         transform: [{ rotate: '45deg' }], // Static rotation for visual matching, animation would require Animated API
     },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: 'rgba(202, 138, 4, 0.4)',
+        shadowColor: 'rgba(235, 192, 36, 0.4)',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.3,
         shadowRadius: 16,
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     openAppButtonText: {
-        color: 'white',
+        color: '#212121',
         fontSize: 16,
         fontWeight: 'bold',
     },

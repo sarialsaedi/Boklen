@@ -118,7 +118,7 @@ export default function FindingProvidersScreen({ navigation }) {
                                             {item.title}
                                         </Text>
                                         <Text style={styles.itemSub} numberOfLines={1}>
-                                            {item.driver}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'}
+                                            {item.fuelType}، {item.rentalType === 'trip' ? 'بالرد' : item.rentalType === 'daily' ? 'يومية' : 'شهرية'}
                                         </Text>
                                     </View>
                                     <View style={styles.searchIconContainer}>
