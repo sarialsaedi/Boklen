@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image, StyleSheet, TextInput, Modal, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
@@ -20,14 +20,9 @@ export default function MachineConfigScreen({ navigation, route }) {
     const { machine } = route.params || {};
     const { addToCart } = useCart();
     const [rentalType, setRentalType] = useState('daily'); // 'trip', 'daily', 'monthly'
-    const [driverOption, setDriverOption] = useState('with_driver');
+    const [fuelType, setFuelType] = useState('diesel');
     const [quantity, setQuantity] = useState(1);
     const [notes, setNotes] = useState('');
-
-    // Calendar State
-    const [isCalendarVisible, setCalendarVisible] = useState(false);
-    const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate] = useState(null);
 
     // Notification State
     const [notification, setNotification] = useState({
@@ -40,43 +35,8 @@ export default function MachineConfigScreen({ navigation, route }) {
         setNotification(prev => ({ ...prev, visible: false }));
     };
 
-    const onDayPress = (day) => {
-        if (!startDate || (startDate && endDate)) {
-            setStartDate(day.dateString);
-            setEndDate(null);
-        } else if (startDate && !endDate) {
-            if (day.dateString < startDate) {
-                setStartDate(day.dateString);
-            } else {
-                setEndDate(day.dateString);
-            }
-        }
-    };
-
     const handleRentalTypeSelect = (type) => {
         setRentalType(type);
-        if (type === 'daily' || type === 'monthly') {
-            setCalendarVisible(true);
-        }
-    };
-
-    const getMarkedDates = () => {
-        const marked = {};
-        if (startDate) {
-            marked[startDate] = { startingDay: true, color: COLORS.primary, textColor: 'white' };
-            if (endDate) {
-                let start = new Date(startDate);
-                let end = new Date(endDate);
-                while (start < end) {
-                    start.setDate(start.getDate() + 1);
-                    const dateStr = start.toISOString().split('T')[0];
-                    if (dateStr === endDate) break;
-                    marked[dateStr] = { color: 'rgba(230, 194, 23, 0.4)', textColor: 'black' };
-                }
-                marked[endDate] = { endingDay: true, color: COLORS.primary, textColor: 'white' };
-            }
-        }
-        return marked;
     };
 
     // Pricing Calculations for "Per Load" (trip)
@@ -86,27 +46,15 @@ export default function MachineConfigScreen({ navigation, route }) {
     const total = subtotal + vat;
 
     const handleAddToCart = () => {
-        if ((rentalType === 'daily' || rentalType === 'monthly') && (!startDate || !endDate)) {
-            setNotification({
-                visible: true,
-                type: 'error',
-                message: 'يرجى اختيار تاريخ البدء والانتهاء للمتابعة.'
-            });
-            return;
-        }
-
         const newItem = {
             id: machine.id,
             title: machine.title,
             subtitle: machine.subtitle,
             image: machine.image,
             rentalType,
-            driver: driverOption === 'with_driver' ? 'مع سائق' : 'بدون سائق',
+            fuelType: fuelType === 'diesel' ? 'ديزل' : 'بنزين',
             quantity,
             price: rentalType === 'trip' ? total : 0, // Simplified price logic for example
-            startDate,
-            endDate,
-            endDate,
             notes,
             tag: machine.tag // Pass the tag (e.g., "سائق مشمول")
         };
@@ -198,43 +146,48 @@ export default function MachineConfigScreen({ navigation, route }) {
                             </View>
 
                             {/* Operating Options */}
+                            {/* Operating Options */}
                             <View style={styles.section}>
                                 <Text style={styles.sectionTitle}>خيارات التشغيل</Text>
-                                <View style={styles.optionsList}>
+                                <View style={styles.rentalTypesGrid}>
                                     <TouchableOpacity
-                                        style={styles.optionCard}
-                                        onPress={() => setDriverOption('with_driver')}
+                                        style={[
+                                            styles.rentalTypeCard,
+                                            fuelType === 'diesel' && styles.rentalTypeActive
+                                        ]}
+                                        onPress={() => setFuelType('diesel')}
                                     >
-                                        <View style={styles.optionRow}>
-                                            <View style={styles.optionIcon}>
-                                                <MaterialIcons name="person" size={24} color="#64748b" />
+                                        <MaterialIcons
+                                            name="local-gas-station"
+                                            size={32}
+                                            color={fuelType === 'diesel' ? COLORS.primary : '#94a3b8'}
+                                        />
+                                        <Text style={styles.rentalTypeName}>ديزل</Text>
+                                        {fuelType === 'diesel' && (
+                                            <View style={styles.checkIcon}>
+                                                <MaterialIcons name="check" size={14} color="black" />
                                             </View>
-                                            <View style={styles.optionInfo}>
-                                                <Text style={styles.optionTitle}>مع سائق</Text>
-                                                <Text style={styles.optionSub}>يشمل تكاليف السائق والاعاشة</Text>
-                                            </View>
-                                            <View style={styles.radioContainer}>
-                                                {driverOption === 'with_driver' && <View style={styles.radioInner} />}
-                                            </View>
-                                        </View>
+                                        )}
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.optionCard}
-                                        onPress={() => setDriverOption('without_driver')}
+                                        style={[
+                                            styles.rentalTypeCard,
+                                            fuelType === 'gasoline' && styles.rentalTypeActive
+                                        ]}
+                                        onPress={() => setFuelType('gasoline')} // Assuming 'gasoline' is handled in logic
                                     >
-                                        <View style={styles.optionRow}>
-                                            <View style={styles.optionIcon}>
-                                                <MaterialIcons name="no-accounts" size={24} color="#64748b" />
+                                        <MaterialCommunityIcons
+                                            name="fuel"
+                                            size={32}
+                                            color={fuelType === 'gasoline' ? COLORS.primary : '#94a3b8'}
+                                        />
+                                        <Text style={styles.rentalTypeName}>بنزين</Text>
+                                        {fuelType === 'gasoline' && (
+                                            <View style={styles.checkIcon}>
+                                                <MaterialIcons name="check" size={14} color="black" />
                                             </View>
-                                            <View style={styles.optionInfo}>
-                                                <Text style={styles.optionTitle}>بدون سائق</Text>
-                                                <Text style={styles.optionSub}>توفير السائق على المستأجر</Text>
-                                            </View>
-                                            <View style={styles.radioContainer}>
-                                                {driverOption === 'without_driver' && <View style={styles.radioInner} />}
-                                            </View>
-                                        </View>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -293,21 +246,7 @@ export default function MachineConfigScreen({ navigation, route }) {
                                         <Text style={styles.totalValue}>{total.toFixed(2)} ر.س</Text>
                                     </View>
                                 </View>
-                            ) : (
-                                <View style={styles.quantityCard}>
-                                    <View>
-                                        <Text style={styles.quantityTitle}>المدة المطلوبة</Text>
-                                        <Text style={styles.quantitySub}>
-                                            {startDate && endDate
-                                                ? `${startDate} إلى ${endDate}`
-                                                : 'يرجى تحديد التاريخ'}
-                                        </Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setCalendarVisible(true)}>
-                                        <MaterialIcons name="edit-calendar" size={28} color={COLORS.primary} />
-                                    </TouchableOpacity>
-                                </View>
-                            )}
+                            ) : null}
 
                             {/* Notes */}
                             <View style={styles.section}>
@@ -339,41 +278,7 @@ export default function MachineConfigScreen({ navigation, route }) {
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>
-                    {/* Calendar Modal */}
-                    <Modal
-                        visible={isCalendarVisible}
-                        transparent={true}
-                        animationType="slide"
-                        onRequestClose={() => setCalendarVisible(false)}
-                    >
-                        <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
-                                <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>اختيار التاريخ</Text>
-                                    <TouchableOpacity onPress={() => setCalendarVisible(false)}>
-                                        <MaterialIcons name="close" size={24} color={COLORS.textDark} />
-                                    </TouchableOpacity>
-                                </View>
-                                <Calendar
-                                    markingType={'period'}
-                                    markedDates={getMarkedDates()}
-                                    onDayPress={onDayPress}
-                                    theme={{
-                                        selectedDayBackgroundColor: COLORS.primary,
-                                        selectedDayTextColor: 'black',
-                                        todayTextColor: COLORS.primary,
-                                        arrowColor: COLORS.primary,
-                                    }}
-                                />
-                                <TouchableOpacity
-                                    style={styles.modalBtn}
-                                    onPress={() => setCalendarVisible(false)}
-                                >
-                                    <Text style={styles.modalBtnText}>تأكيد</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </Modal>
+
                 </View>
             </TouchableWithoutFeedback>
             <TopNotificationBanner

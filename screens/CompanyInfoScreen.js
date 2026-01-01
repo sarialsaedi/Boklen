@@ -300,6 +300,9 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginBottom: 8,
         textAlign: 'right',
+        width: '100%',
+        alignSelf: 'stretch',
+        writingDirection: 'rtl',
     },
     required: {
         color: '#ef4444',
@@ -319,6 +322,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: COLORS.textLight,
         textAlign: 'right',
+        writingDirection: 'rtl',
+        alignSelf: 'stretch',
     },
     placeholder: {
         color: COLORS.subtextLight,

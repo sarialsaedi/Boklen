@@ -4,13 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#E6C217',
-    backgroundLight: '#f6f7f8',
-    surfaceLight: '#ffffff',
-    textLight: '#1e293b',
-    textDark: '#0f172a',
-    subtext: '#64748b',
-    border: '#e2e8f0',
+    primary: '#EBC024',
+    backgroundLight: '#FAFAFA',
+    surfaceLight: '#FFFFFF',
+    textMain: '#212121',
+    textSub: '#757575',
+    border: '#E0E0E0',
 };
 
 export default function LoginScreen({ navigation }) {
@@ -55,7 +54,7 @@ export default function LoginScreen({ navigation }) {
             >
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                        <MaterialIcons name="arrow-forward" size={24} color={COLORS.textDark} />
+                        <MaterialIcons name="arrow-forward" size={24} color={COLORS.textMain} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>تسجيل الدخول</Text>
                     <View style={{ width: 40 }} />
@@ -80,6 +79,7 @@ export default function LoginScreen({ navigation }) {
                             <TextInput
                                 style={styles.phoneInput}
                                 placeholder="5X XXX XXXX"
+                                placeholderTextColor={COLORS.textSub}
                                 keyboardType="number-pad"
                                 value={phoneNumber}
                                 onChangeText={handlePhoneChange}
@@ -97,6 +97,7 @@ export default function LoginScreen({ navigation }) {
                             <TextInput
                                 style={styles.input}
                                 placeholder="******"
+                                placeholderTextColor={COLORS.textSub}
                                 secureTextEntry
                                 value={password}
                                 onChangeText={(text) => {
@@ -119,7 +120,7 @@ export default function LoginScreen({ navigation }) {
                         activeOpacity={0.7}
                     >
                         <Text style={[styles.primaryButtonText, !isFormValid && styles.disabledButtonText]}>تسجيل الدخول</Text>
-                        <MaterialIcons name="arrow-back" size={20} color={!isFormValid ? COLORS.subtext : "white"} />
+                        <MaterialIcons name="arrow-back" size={20} color={!isFormValid ? COLORS.textSub : "black"} />
                     </TouchableOpacity>
 
                     <View style={styles.footer}>
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
     },
     content: {
         padding: 20,
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 16,
-        backgroundColor: 'rgba(230, 194, 23, 0.1)',
+        backgroundColor: 'rgba(235, 192, 36, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
@@ -180,12 +181,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: COLORS.subtext,
+        color: COLORS.textSub,
         textAlign: 'center',
         lineHeight: 24,
         marginBottom: 32,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
         marginBottom: 8,
         textAlign: 'right',
     },
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     countryCodeText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
     },
     phoneInput: {
         flex: 1,
@@ -239,14 +240,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         fontSize: 18,
         textAlign: 'left',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
     },
     input: {
         flex: 1,
         height: '100%',
         fontSize: 16,
         textAlign: 'right',
-        color: COLORS.textDark,
+        color: COLORS.textMain,
     },
     forgotPasswordContainer: {
         alignItems: 'flex-start',
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
         color: '#94a3b8',
     },
     primaryButtonText: {
-        color: 'white',
+        color: COLORS.textMain,
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 8,
@@ -305,7 +306,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: 14,
-        color: COLORS.subtext,
+        color: COLORS.textSub,
     },
     linkText: {
         fontSize: 14,

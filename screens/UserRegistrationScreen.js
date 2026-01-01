@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const COLORS = {
-    primary: '#E6C217',
-    backgroundLight: '#f6f7f8',
-    surfaceLight: '#ffffff',
+    primary: '#EBC024',
+    backgroundLight: '#FAFAFA',
+    surfaceLight: '#FFFFFF',
     textLight: '#1e293b',
-    textDark: '#0f172a',
-    subtext: '#64748b',
+    textDark: '#212121',
+    subtext: '#757575',
     border: '#e2e8f0',
 };
 
@@ -94,6 +94,7 @@ export default function UserRegistrationScreen({ navigation }) {
                                 <TextInput
                                     style={styles.phoneInput}
                                     placeholder="5X XXX XXXX"
+                                    placeholderTextColor={COLORS.subtext}
                                     keyboardType="phone-pad"
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
@@ -173,7 +174,7 @@ export default function UserRegistrationScreen({ navigation }) {
                         <Text style={styles.primaryButtonText}>
                             {step === 1 ? 'تسجيل ومتابعة' : 'تحقق ودخول'}
                         </Text>
-                        <MaterialIcons name="arrow-back" size={20} color="white" />
+                        <MaterialIcons name="arrow-back" size={20} color={COLORS.textDark} />
                     </TouchableOpacity>
 
                     <View style={styles.footer}>
@@ -205,7 +206,7 @@ export default function UserRegistrationScreen({ navigation }) {
                             style={styles.providerSwitch}
                             onPress={() => navigation.navigate('CompanyInfo')}
                         >
-                            <Text style={styles.providerSwitchText}>الدخول كمزود خدمة (شركات)</Text>
+                            <Text style={styles.providerSwitchText}>الدخول كمزود خدمة</Text>
                             <MaterialIcons name="business" size={16} color={COLORS.subtext} />
                         </TouchableOpacity>
                     </View>
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     primaryButtonText: {
-        color: 'white',
+        color: COLORS.textDark,
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 8,

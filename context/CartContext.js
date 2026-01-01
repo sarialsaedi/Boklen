@@ -134,7 +134,7 @@ export const CartProvider = ({ children }) => {
         setCartItems((prevItems) => {
             // Check if item already exists with matching id, driver, and rentalType
             const existingItemIndex = prevItems.findIndex(
-                (i) => i.id === item.id && i.driver === item.driver && i.rentalType === item.rentalType
+                (i) => i.id === item.id && i.fuelType === item.fuelType && i.rentalType === item.rentalType
             );
 
             if (existingItemIndex >= 0) {

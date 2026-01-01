@@ -177,8 +177,12 @@ const styles = StyleSheet.create({
         color: COLORS.textDark,
         marginBottom: 8,
         textAlign: 'right',
+        width: '100%',
+        alignSelf: 'stretch',
+        marginRight: 4,
     },
     inputContainer: {
+        width: '100%',
         flexDirection: 'row-reverse',
         alignItems: 'center',
         backgroundColor: COLORS.surfaceLight,
@@ -190,6 +194,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     readOnlyContainer: {
+        width: '100%',
         flexDirection: 'row-reverse',
         alignItems: 'center',
         justifyContent: 'space-between',

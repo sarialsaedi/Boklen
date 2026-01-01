@@ -14,13 +14,13 @@ const COLORS = {
 
 const NotificationItem = ({ title, value, onValueChange }) => (
     <View style={styles.itemContainer}>
+        <Text style={styles.itemText}>{title}</Text>
         <Switch
             value={value}
             onValueChange={onValueChange}
             trackColor={{ false: '#cbd5e1', true: COLORS.primary }}
             thumbColor={COLORS.surfaceLight}
         />
-        <Text style={styles.itemText}>{title}</Text>
     </View>
 );
 
@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
         color: COLORS.textDark,
+        textAlign: 'right',
     },
     divider: {
         height: 1,

@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.backgroundLight,
     },
     header: {
-        flexDirection: 'row',
+        flexDirection: 'row-reverse',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
@@ -69,5 +69,6 @@ const styles = StyleSheet.create({
         lineHeight: 24,
         color: COLORS.textDark,
         textAlign: 'right',
+        writingDirection: 'rtl',
     },
 });

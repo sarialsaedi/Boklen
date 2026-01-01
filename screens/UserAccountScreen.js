@@ -50,13 +50,15 @@ export default function UserAccountScreen({ navigation }) {
                 </View>
                 <Text style={styles.menuItemTitle}>{item.title}</Text>
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={COLORS.textGray} />
+            <MaterialIcons name="chevron-left" size={24} color={COLORS.textGray} />
         </TouchableOpacity>
     );
 
     const renderSection = (title, items) => (
         <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>{title}</Text>
+            <View style={{ width: '100%', alignItems: 'flex-start' }}>
+                <Text style={styles.sectionTitle}>{title}</Text>
+            </View>
             <View style={styles.sectionContent}>
                 {items.map((item, index) => renderMenuItem(item, index === items.length - 1))}
             </View>
@@ -235,7 +237,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     menuItem: {
-        flexDirection: 'row-reverse', // RTL Support for content within item
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingVertical: 16,
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
     },
     menuItemLeft: {
-        flexDirection: 'row-reverse', // RTL icon and text
+        flexDirection: 'row',
         alignItems: 'center',
         gap: 16,
     },
@@ -262,6 +264,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '500',
         color: COLORS.textDark,
+        textAlign: 'right',
     },
     // Footer Styles
     footerContainer: {

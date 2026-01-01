@@ -300,12 +300,14 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginBottom: 8,
         textAlign: 'right',
+        width: '100%',
     },
     subtitle: {
         fontSize: 16,
         color: COLORS.subtextLight,
         lineHeight: 24,
         textAlign: 'right',
+        width: '100%',
     },
     infoBox: {
         flexDirection: 'row',
@@ -335,6 +337,8 @@ const styles = StyleSheet.create({
     },
     inputGroup: {
         marginBottom: 24,
+        alignItems: 'flex-end',
+        width: '100%',
     },
     label: {
         fontSize: 14,
@@ -342,9 +346,11 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginBottom: 8,
         textAlign: 'right',
+        width: '100%',
+        alignSelf: 'stretch',
     },
     inputWrapper: {
-        flexDirection: 'row',
+        flexDirection: 'row-reverse',
         alignItems: 'center',
         backgroundColor: COLORS.surfaceLight,
         borderWidth: 1,
@@ -352,6 +358,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         paddingHorizontal: 16,
         height: 56,
+        width: '100%',
     },
     input: {
         flex: 1,
