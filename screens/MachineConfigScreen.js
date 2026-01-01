@@ -146,41 +146,48 @@ export default function MachineConfigScreen({ navigation, route }) {
                             </View>
 
                             {/* Operating Options */}
+                            {/* Operating Options */}
                             <View style={styles.section}>
                                 <Text style={styles.sectionTitle}>خيارات التشغيل</Text>
-                                <View style={styles.optionsList}>
+                                <View style={styles.rentalTypesGrid}>
                                     <TouchableOpacity
-                                        style={styles.optionCard}
+                                        style={[
+                                            styles.rentalTypeCard,
+                                            fuelType === 'diesel' && styles.rentalTypeActive
+                                        ]}
                                         onPress={() => setFuelType('diesel')}
                                     >
-                                        <View style={styles.optionRow}>
-                                            <View style={styles.optionIcon}>
-                                                <MaterialIcons name="local-gas-station" size={24} color="#64748b" />
+                                        <MaterialIcons
+                                            name="local-gas-station"
+                                            size={32}
+                                            color={fuelType === 'diesel' ? COLORS.primary : '#94a3b8'}
+                                        />
+                                        <Text style={styles.rentalTypeName}>ديزل</Text>
+                                        {fuelType === 'diesel' && (
+                                            <View style={styles.checkIcon}>
+                                                <MaterialIcons name="check" size={14} color="black" />
                                             </View>
-                                            <View style={styles.optionInfo}>
-                                                <Text style={styles.optionTitle}>ديزل</Text>
-                                            </View>
-                                            <View style={styles.radioContainer}>
-                                                {fuelType === 'diesel' && <View style={styles.radioInner} />}
-                                            </View>
-                                        </View>
+                                        )}
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.optionCard}
-                                        onPress={() => setFuelType('gasoline')}
+                                        style={[
+                                            styles.rentalTypeCard,
+                                            fuelType === 'gasoline' && styles.rentalTypeActive
+                                        ]}
+                                        onPress={() => setFuelType('gasoline')} // Assuming 'gasoline' is handled in logic
                                     >
-                                        <View style={styles.optionRow}>
-                                            <View style={styles.optionIcon}>
-                                                <MaterialCommunityIcons name="fuel" size={24} color="#64748b" />
+                                        <MaterialCommunityIcons
+                                            name="fuel"
+                                            size={32}
+                                            color={fuelType === 'gasoline' ? COLORS.primary : '#94a3b8'}
+                                        />
+                                        <Text style={styles.rentalTypeName}>بنزين</Text>
+                                        {fuelType === 'gasoline' && (
+                                            <View style={styles.checkIcon}>
+                                                <MaterialIcons name="check" size={14} color="black" />
                                             </View>
-                                            <View style={styles.optionInfo}>
-                                                <Text style={styles.optionTitle}>بنزين</Text>
-                                            </View>
-                                            <View style={styles.radioContainer}>
-                                                {fuelType === 'gasoline' && <View style={styles.radioInner} />}
-                                            </View>
-                                        </View>
+                                        )}
                                     </TouchableOpacity>
                                 </View>
                             </View>

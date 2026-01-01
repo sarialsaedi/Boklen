@@ -178,6 +178,8 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textAlign: 'right',
         width: '100%',
+        alignSelf: 'stretch',
+        marginRight: 4,
     },
     inputContainer: {
         width: '100%',

@@ -347,9 +347,10 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textAlign: 'right',
         width: '100%',
+        alignSelf: 'stretch',
     },
     inputWrapper: {
-        flexDirection: 'row',
+        flexDirection: 'row-reverse',
         alignItems: 'center',
         backgroundColor: COLORS.surfaceLight,
         borderWidth: 1,
